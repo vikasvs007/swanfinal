@@ -1,0 +1,94 @@
+
+POST http://localhost:5000/api/users
+Content-Type: application/json
+
+{
+  "name": "John Doe",
+  "email": "john@example.com",
+  "password": "password123",
+  "role": "customer",
+  "profile_image": "https://example.com/john.jpg",
+  "created_by": "system",
+  "updated_by": "system"
+}
+
+POST http://localhost:5000/api/products
+Content-Type: application/json
+
+{
+  "name": "Smartphone X",
+  "description": "Latest smartphone",
+  "price": 799.99,
+  "stock_quantity": 100,
+  "image_url": "https://example.com/phone.jpg"
+}
+
+POST http://localhost:5000/api/orders
+Content-Type: application/json
+
+{
+  "user_id": "65cb7a8d1234567890abcdef", // Replace with actual user ID
+  "products": [
+    {
+      "product_id": "65cb7a8d1234567890abcdef", // Replace with actual product ID
+      "quantity": 1,
+      "price": 1299.99
+    }
+  ],
+  "total_amount": 1299.99
+}
+
+POST http://localhost:5000/api/enquiries
+Content-Type: application/json
+
+{
+  "user_id": "65cb7a8d1234567890abcdef", // Replace with actual user ID
+  "message": "Product inquiry"
+}
+
+POST http://localhost:5000/api/enquiries
+Content-Type: application/json
+
+{
+  "user_id": "65cb7a8d1234567890abcdef", // Replace with actual user ID
+  "message": "Product inquiry"
+}
+
+POST http://localhost:5000/api/notifications
+Content-Type: application/json
+
+{
+  "user_id": "65cb7a8d1234567890abcdef", // Replace with actual user ID
+  "message": "New product available"
+}
+
+POST http://localhost:5000/api/active-users
+Content-Type: application/json
+
+{
+  "user_id": "65cb7a8d1234567890abcdef", // Replace with actual user ID
+  "session_duration": 3600,
+  "Location": "19.0760,72.8777"
+}
+
+POST http://localhost:5000/api/visitors
+Content-Type: application/json
+
+{
+  "ip_address": "192.168.1.100",
+  "location": {
+    "country": "India",
+    "city": "Mumbai",
+    "latitude": 19.0760,
+    "longitude": 72.8777
+  }
+}
+
+POST http://localhost:5000/api/user-statistics
+Content-Type: application/json
+
+{
+  "user_id": "65cb7a8d1234567890abcdef", // Replace with actual user ID
+  "page_name": "cart",
+  "time_spent": 300
+}
