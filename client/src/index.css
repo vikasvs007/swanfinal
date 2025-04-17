@@ -1,0 +1,155 @@
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap");
+@import '~leaflet/dist/leaflet.css';
+
+html,
+body,
+#root,
+.app {
+  height: 100%;
+  width: 100%;
+  font-family: "Inter", sans-serif;
+  transition: all 0.3s ease;
+  background-color: #ffffff;
+  color: #121212; /* Ensure default text color is dark */
+}
+
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+/* Track */
+::-webkit-scrollbar-track {
+  background: rgba(96, 165, 250, 0.05); /* blue-400 with very low opacity */
+  border-radius: 10px;
+}
+
+/* Handle */
+::-webkit-scrollbar-thumb {
+  background: linear-gradient(to bottom, #4ade80, #60a5fa); /* green-400 to blue-400 */
+  border-radius: 10px;
+}
+
+/* Handle on Hover */
+::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(to bottom, #34d399, #3b82f6); /* darker gradient on hover */
+  cursor: pointer;
+}
+
+/* Add smooth transitions for better UI feel */
+button, a, input, select, .MuiPaper-root {
+  transition: all 0.2s ease-in-out !important;
+}
+
+/* Better focus outlines for accessibility */
+*:focus {
+  outline: 2px solid rgba(46, 212, 122, 0.5) !important;
+  outline-offset: 2px !important;
+}
+
+/* Light theme optimizations */
+.app {
+  color: #121212;
+}
+
+/* Card and paper elements styling */
+.MuiPaper-root {
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05) !important;
+  border-radius: 12px !important;
+  color: #121212 !important;
+  background-color: #ffffff !important;
+}
+
+.MuiPaper-root:hover {
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.1) !important;
+}
+
+/* Primary button styling */
+.MuiButton-containedPrimary {
+  background-image: linear-gradient(to right, #4ade80, #60a5fa) !important;
+  color: white !important;
+  font-weight: 500 !important;
+}
+
+.MuiButton-containedPrimary:hover {
+  background-image: linear-gradient(to right, #34d399, #3b82f6) !important;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15) !important;
+}
+
+/* Fix for enquiry section background */
+.enquiry-section .MuiPaper-root {
+  background-color: #ffffff !important;
+}
+
+/* Ensure table/grid text is visible */
+.MuiTableCell-root,
+.MuiDataGrid-cell,
+.MuiDataGrid-columnHeaderTitle {
+  color: #121212 !important;
+}
+
+.MuiDataGrid-columnHeaders {
+  background-color: #f0f0f0 !important;
+}
+
+.MuiDataGrid-footerContainer {
+  background-color: #f0f0f0 !important;
+}
+
+/* Alternate row colors in tables for better readability */
+.MuiDataGrid-row:nth-of-type(even) {
+  background-color: #f0f0f0 !important;
+}
+
+/* Ensure form inputs have visible text */
+.MuiInputBase-input {
+  color: #121212 !important;
+}
+
+.MuiInputLabel-root {
+  color: #121212 !important;
+}
+
+.MuiSelect-select {
+  color: #121212 !important;
+}
+
+/* Ensure typography has appropriate color contrast */
+.MuiTypography-root {
+  color: #121212 !important;
+}
+
+.MuiIconButton-root {
+  color: #3b82f6 !important;
+}
+
+.MuiIconButton-root:hover {
+  color: #1d4ed8 !important;
+  background-color: rgba(59, 130, 246, 0.08) !important;
+}
+
+.MuiChip-root {
+  color: #121212 !important;
+}
+
+/* Override text in active elements that need to be white */
+.MuiListItemButton-root.Mui-selected .MuiTypography-root,
+.MuiButton-containedPrimary .MuiTypography-root,
+.MuiButton-contained .MuiTypography-root {
+  color: #ffffff !important;
+}
+
+/* Menu items */
+.MuiMenuItem-root {
+  color: #121212 !important;
+}
+
+/* Dialog and modal elements */
+.MuiDialog-paper {
+  color: #121212 !important;
+  background-color: #ffffff !important;
+}
+
+/* Headers in DataGrids */
+.MuiDataGrid-columnHeaderTitle {
+  font-weight: 600 !important;
+}
