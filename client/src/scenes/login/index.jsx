@@ -40,23 +40,9 @@ const getUserData = (type) => {
     admin: {
       id: "67ab741b4ed113b4940fac28",
       email: "admin@company.com",
-      password: "admin123",
+      password: "admin@123",
       name: "Admin User",
       role: "admin"
-    },
-    manager: {
-      id: "67ab742c4ed113b4940fac29",
-      email: "manager@company.com",
-      password: "manager123",
-      name: "Manager User",
-      role: "admin"
-    },
-    customer: {
-      id: "67ab743d4ed113b4940fac30",
-      email: "customer@example.com",
-      password: "customer123",
-      name: "John Customer",
-      role: "customer"
     }
   };
   
