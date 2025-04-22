@@ -51,4 +51,8 @@ enquirySchema.pre('save', function(next) {
   next();
 });
 
+// Create compound index for common queries to improve performance
+enquirySchema.index({ is_deleted: 1, created_at: -1 });
+enquirySchema.index({ status: 1, is_deleted: 1 });
+
 module.exports = mongoose.model('usersEnquires', enquirySchema);

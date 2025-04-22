@@ -64,21 +64,47 @@ const enquiryController = {
   // Get all enquiries
   async getEnquiries(req, res) {
     try {
-      const enquiries = await Enquiry.find({ is_deleted: false })
+      // Set a timeout for the database operation
+      const timeoutPromise = new Promise((_, reject) => 
+        setTimeout(() => reject(new Error('Database operation timed out')), 20000)
+      );
+      
+      // The actual find operation
+      const findPromise = Enquiry.find({ is_deleted: false })
         .populate('user_id', 'name email phone')
-        .sort({ created_at: -1 });
+        .sort({ created_at: -1 })
+        .lean() // Use lean() for better performance
+        .exec();
+      
+      // Race the promises
+      const enquiries = await Promise.race([findPromise, timeoutPromise]);
       
       // Normalize status values in the response
       const normalizedEnquiries = enquiries.map(enquiry => {
-        const normEnquiry = enquiry.toObject();
-        if (normEnquiry.status === 'open') {
-          normEnquiry.status = 'pending';
+        if (enquiry.status === 'open') {
+          enquiry.status = 'pending';
         }
-        return normEnquiry;
+        return enquiry;
       });
       
       res.json(normalizedEnquiries);
     } catch (error) {
+      console.error('Error fetching enquiries:', error);
+      // Check if it's a timeout error
+      if (error.message === 'Database operation timed out') {
+        return res.status(504).json({ 
+          message: 'Database operation timed out. Please try again later.',
+          error: error.message
+        });
+      }
+      // Check if it's a connection error
+      if (error.name === 'MongooseError' || error.name === 'MongoError') {
+        return res.status(503).json({ 
+          message: 'Database connection issue. Please try again later.',
+          error: error.message
+        });
+      }
+      // Generic error
       res.status(500).json({ message: error.message });
     }
   },

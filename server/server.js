@@ -5,6 +5,7 @@ const dotenv = require('dotenv');
 const trackActivity = require('./middleware/trackActivity');
 const path = require('path');
 const fs = require('fs');
+const { connectToDatabase } = require('./utils/dbConnection');
 
 // Configure environment variables
 dotenv.config();
@@ -61,12 +62,15 @@ app.use('/uploads', (req, res, next) => {
 }, express.static(path.join(__dirname, 'uploads')));
 
 // Database connection
-mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/crud_db', {
-  useNewUrlParser: true,
-  useUnifiedTopology: true
-})
-.then(() => console.log('Connected to MongoDB'))
-.catch((err) => console.error('MongoDB connection error:', err));
+connectToDatabase()
+  .then(connected => {
+    if (!connected) {
+      console.error('Failed to establish database connection. Server will continue but database operations may fail.');
+    }
+  })
+  .catch(err => {
+    console.error('Error during database connection setup:', err);
+  });
 
 // Welcome route
 app.get('/', (req, res) => {
@@ -87,21 +91,49 @@ app.get('/', (req, res) => {
   });
 });
 
-// API routes
-app.use('/api/users', userRoutes);
-app.use('/api/products', productRoutes);
-app.use('/api/orders', orderRoutes);
-app.use('/api/enquiries', enquiryRoutes);
-app.use('/api/notifications', notificationRoutes);
-app.use('/api/active-users', activeUserRoutes);
-app.use('/api/visitors', visitorRoutes);
-app.use('/api/user-statistics', userStatisticsRoutes);
-app.use('/api/blogs', blogRoutes);
-app.use('/api/cards', cardRoutes);
+// Add a database check middleware for API routes
+const checkDatabaseConnection = (req, res, next) => {
+  if (mongoose.connection.readyState !== 1) {
+    return res.status(503).json({
+      message: 'Database connection is not established. Please try again later.'
+    });
+  }
+  next();
+};
+
+// API routes with database connection check
+app.use('/api/users', checkDatabaseConnection, userRoutes);
+app.use('/api/products', checkDatabaseConnection, productRoutes);
+app.use('/api/orders', checkDatabaseConnection, orderRoutes);
+app.use('/api/enquiries', checkDatabaseConnection, enquiryRoutes);
+app.use('/api/notifications', checkDatabaseConnection, notificationRoutes);
+app.use('/api/active-users', checkDatabaseConnection, activeUserRoutes);
+app.use('/api/visitors', checkDatabaseConnection, visitorRoutes);
+app.use('/api/user-statistics', checkDatabaseConnection, userStatisticsRoutes);
+app.use('/api/blogs', checkDatabaseConnection, blogRoutes);
+app.use('/api/cards', checkDatabaseConnection, cardRoutes);
 
 // Error handling
 app.use((err, req, res, next) => {
   console.error(err.stack);
+  
+  // Handle database connection errors
+  if (err.name === 'MongooseError' || err.name === 'MongoError') {
+    return res.status(503).json({
+      message: 'Database connection issue. Please try again later.',
+      error: process.env.NODE_ENV === 'development' ? err.message : 'Database error'
+    });
+  }
+  
+  // Handle timeout errors
+  if (err.name === 'TimeoutError') {
+    return res.status(504).json({
+      message: 'Request timed out. Please try again later.',
+      error: process.env.NODE_ENV === 'development' ? err.message : 'Timeout error'
+    });
+  }
+  
+  // General error
   res.status(500).json({
     message: 'Something went wrong!',
     error: process.env.NODE_ENV === 'development' ? err.message : undefined
@@ -109,7 +141,7 @@ app.use((err, req, res, next) => {
 });
 
 // Start server
-const PORT =  5000;
+const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}`);
   console.log(`API available at: http://localhost:${PORT}/api`);
