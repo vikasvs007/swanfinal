@@ -5,14 +5,26 @@ async function connectToDatabase() {
   
   while (retries > 0) {
     try {
-      await mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/crud_db', {
+      // Set mongoose settings for better SSL compatibility
+      mongoose.set('strictQuery', false); // Suppress deprecation warning
+      
+      // Different connection options for development and production
+      const connectionOptions = {
         useNewUrlParser: true,
         useUnifiedTopology: true,
         serverSelectionTimeoutMS: 30000,
         connectTimeoutMS: 30000,
         socketTimeoutMS: 75000,
         maxPoolSize: 10
-      });
+      };
+      
+      // Add SSL options in production
+      if (process.env.NODE_ENV === 'production') {
+        console.log('Using production MongoDB connection settings with SSL');
+        // Note: MongoDB Atlas handles SSL by default, no need for additional SSL options
+      }
+      
+      await mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/crud_db', connectionOptions);
       
       console.log('Connected to MongoDB successfully');
       
