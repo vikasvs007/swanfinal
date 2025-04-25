@@ -1,11 +1,12 @@
 const express = require('express');
 const router = express.Router();
 const notificationController = require('../controllers/notificationController');
+const { combinedAuth } = require('../middleware/auth');
 
-// Routes without authentication
-router.get('/', notificationController.getNotifications);
-router.post('/', notificationController.createNotification);
-router.put('/:id/read', notificationController.markAsRead);
-router.delete('/:id', notificationController.deleteNotification);
+// All notification routes require authentication
+router.get('/', combinedAuth, notificationController.getNotifications);
+router.post('/', combinedAuth, notificationController.createNotification);
+router.put('/:id/read', combinedAuth, notificationController.markAsRead);
+router.delete('/:id', combinedAuth, notificationController.deleteNotification);
 
 module.exports = router;

@@ -15,6 +15,7 @@ import {
   InputAdornment,
   CircularProgress,
   Paper,
+  Grid,
 } from "@mui/material";
 import {
   Person as PersonIcon,
@@ -25,6 +26,8 @@ import {
   Check as CheckIcon,
 } from "@mui/icons-material";
 import Header from "components/Header";
+import ApiTokenManager from "components/ApiTokenManager";
+import ApiClientExample from "components/ApiClientExample";
 import { useSelector, useDispatch } from "react-redux";
 import { setUser } from "state";
 import { store } from "state/store";
@@ -271,219 +274,230 @@ const Profile = () => {
 
   return (
     <Box m="1.5rem 2.5rem">
-      <Header title="PROFILE SETTINGS" subtitle="Manage your account information" />
+      <Header title="PROFILE" subtitle="Manage your account settings" />
       
-      <Box mt={4}>
-        <Card
-          sx={{
-            backgroundImage: "none",
-            backgroundColor: theme.palette.background.alt,
-            borderRadius: "0.55rem",
-          }}
-        >
-          <CardContent>
-            <Box sx={{ display: "flex", alignItems: "center", mb: 4 }}>
-              <Avatar
-                src={user?.photo}
-                sx={{
-                  width: 80,
-                  height: 80,
-                  border: `3px solid ${theme.palette.primary.main}`,
-                  boxShadow: "0 4px 12px rgba(0,0,0,0.1)",
-                }}
-              >
-                <PersonIcon sx={{ fontSize: 40 }} />
-              </Avatar>
-              <Box sx={{ ml: 3 }}>
-                <Typography variant="h5" fontWeight="bold" sx={{ color: theme.palette.secondary[100] }}>
-                  {user?.name || "User"}
-                </Typography>
-                <Typography variant="body2" sx={{ color: theme.palette.secondary[200] }}>
-                  {user?.role || "User"}
-                </Typography>
-                <Typography variant="caption" sx={{ color: theme.palette.secondary[200], mt: 1 }}>
-                  {user?.email ? `Currently using: ${user.email}` : "No email set"}
-                </Typography>
-              </Box>
-            </Box>
-
-            <Divider sx={{ mb: 4 }} />
-
-            {error && (
-              <Alert severity="error" sx={{ mb: 3 }}>
-                {error}
-              </Alert>
-            )}
-
-            <form onSubmit={handleSubmit}>
-              <Box sx={{ display: "flex", flexDirection: "column", gap: 3 }}>
-                <TextField
-                  label="Email"
-                  name="email"
-                  value={formData.email}
-                  onChange={handleInputChange}
-                  error={!!errors.email}
-                  helperText={errors.email}
-                  fullWidth
-                  InputProps={{
-                    startAdornment: (
-                      <InputAdornment position="start">
-                        <EmailIcon sx={{ color: theme.palette.secondary[300] }} />
-                      </InputAdornment>
-                    ),
-                  }}
-                />
-
-                <Typography variant="h6" sx={{ color: theme.palette.secondary[100], mt: 2 }}>
-                  Change Password
-                </Typography>
-
-                <TextField
-                  label="Current Password"
-                  name="currentPassword"
-                  type={showPasswords.current ? "text" : "password"}
-                  value={formData.currentPassword}
-                  onChange={handleInputChange}
-                  error={!!errors.currentPassword}
-                  helperText={errors.currentPassword}
-                  fullWidth
-                  InputProps={{
-                    startAdornment: (
-                      <InputAdornment position="start">
-                        <LockIcon sx={{ color: theme.palette.secondary[300] }} />
-                      </InputAdornment>
-                    ),
-                    endAdornment: (
-                      <InputAdornment position="end">
-                        <IconButton
-                          onClick={() => togglePasswordVisibility("current")}
-                          edge="end"
-                        >
-                          {showPasswords.current ? <VisibilityOffIcon /> : <VisibilityIcon />}
-                        </IconButton>
-                      </InputAdornment>
-                    ),
-                  }}
-                />
-
-                <TextField
-                  label="New Password"
-                  name="newPassword"
-                  type={showPasswords.new ? "text" : "password"}
-                  value={formData.newPassword}
-                  onChange={handleInputChange}
-                  error={!!errors.newPassword}
-                  helperText={errors.newPassword}
-                  fullWidth
-                  InputProps={{
-                    startAdornment: (
-                      <InputAdornment position="start">
-                        <LockIcon sx={{ color: theme.palette.secondary[300] }} />
-                      </InputAdornment>
-                    ),
-                    endAdornment: (
-                      <InputAdornment position="end">
-                        <IconButton
-                          onClick={() => togglePasswordVisibility("new")}
-                          edge="end"
-                        >
-                          {showPasswords.new ? <VisibilityOffIcon /> : <VisibilityIcon />}
-                        </IconButton>
-                      </InputAdornment>
-                    ),
-                  }}
-                />
-
-                <TextField
-                  label="Confirm New Password"
-                  name="confirmPassword"
-                  type={showPasswords.confirm ? "text" : "password"}
-                  value={formData.confirmPassword}
-                  onChange={handleInputChange}
-                  error={!!errors.confirmPassword}
-                  helperText={errors.confirmPassword}
-                  fullWidth
-                  InputProps={{
-                    startAdornment: (
-                      <InputAdornment position="start">
-                        <LockIcon sx={{ color: theme.palette.secondary[300] }} />
-                      </InputAdornment>
-                    ),
-                    endAdornment: (
-                      <InputAdornment position="end">
-                        <IconButton
-                          onClick={() => togglePasswordVisibility("confirm")}
-                          edge="end"
-                        >
-                          {showPasswords.confirm ? <VisibilityOffIcon /> : <VisibilityIcon />}
-                        </IconButton>
-                      </InputAdornment>
-                    ),
-                  }}
-                />
-
-                <Box sx={{ display: "flex", justifyContent: "flex-end", gap: 2, mt: 2 }}>
-                  <Button
-                    type="button"
-                    variant="outlined"
-                    onClick={forceUserUpdate}
-                    disabled={isLoading || formData.email === originalEmail}
+      <Box mt="40px">
+        <Grid container spacing={3}>
+          {/* Main profile info */}
+          <Grid item xs={12} md={7}>
+            <Card
+              sx={{
+                borderRadius: 2,
+                boxShadow: "0px 4px 20px rgba(0, 0, 0, 0.05)",
+                height: "100%",
+              }}
+            >
+              <CardContent>
+                <Box sx={{ display: "flex", alignItems: "center", mb: 4 }}>
+                  <Avatar
+                    src={user?.photo}
                     sx={{
-                      borderColor: theme.palette.secondary[300],
-                      color: theme.palette.secondary[300],
-                      "&:hover": {
-                        borderColor: theme.palette.secondary[100],
-                        backgroundColor: "rgba(255, 255, 255, 0.08)",
-                      },
+                      width: 80,
+                      height: 80,
+                      border: `3px solid ${theme.palette.primary.main}`,
+                      boxShadow: "0 4px 12px rgba(0,0,0,0.1)",
                     }}
                   >
-                    Force Update
-                  </Button>
-                  <Button
-                    type="submit"
-                    variant="contained"
-                    disabled={isLoading}
-                    sx={{
-                      backgroundColor: theme.palette.secondary[300],
-                      color: theme.palette.background.alt,
-                      "&:hover": {
-                        backgroundColor: theme.palette.secondary[100],
-                      },
-                      minWidth: "150px",
-                    }}
-                  >
-                    {isLoading ? (
-                      <CircularProgress size={24} color="inherit" />
-                    ) : (
-                      "Save Changes"
-                    )}
-                  </Button>
+                    <PersonIcon sx={{ fontSize: 40 }} />
+                  </Avatar>
+                  <Box sx={{ ml: 3 }}>
+                    <Typography variant="h5" fontWeight="bold" sx={{ color: theme.palette.secondary[100] }}>
+                      {user?.name || "User"}
+                    </Typography>
+                    <Typography variant="body2" sx={{ color: theme.palette.secondary[200] }}>
+                      {user?.role || "User"}
+                    </Typography>
+                    <Typography variant="caption" sx={{ color: theme.palette.secondary[200], mt: 1 }}>
+                      {user?.email ? `Currently using: ${user.email}` : "No email set"}
+                    </Typography>
+                  </Box>
                 </Box>
-              </Box>
-            </form>
-            
-            {debugInfo && (
-              <Paper 
-                elevation={0} 
-                sx={{ 
-                  mt: 3, 
-                  p: 2, 
-                  backgroundColor: 'rgba(0,0,0,0.05)',
-                  borderRadius: '4px',
-                }}
-              >
-                <Typography variant="subtitle2" color="text.secondary">Debug Information:</Typography>
-                <pre style={{ 
-                  overflowX: 'auto', 
-                  fontSize: '12px',
-                  marginTop: '8px'
-                }}>
-                  {JSON.stringify(debugInfo, null, 2)}
-                </pre>
-              </Paper>
-            )}
-          </CardContent>
-        </Card>
+
+                <Divider sx={{ mb: 4 }} />
+
+                {error && (
+                  <Alert severity="error" sx={{ mb: 3 }}>
+                    {error}
+                  </Alert>
+                )}
+
+                <form onSubmit={handleSubmit}>
+                  <Box sx={{ display: "flex", flexDirection: "column", gap: 3 }}>
+                    <TextField
+                      label="Email"
+                      name="email"
+                      value={formData.email}
+                      onChange={handleInputChange}
+                      error={!!errors.email}
+                      helperText={errors.email}
+                      fullWidth
+                      InputProps={{
+                        startAdornment: (
+                          <InputAdornment position="start">
+                            <EmailIcon sx={{ color: theme.palette.secondary[300] }} />
+                          </InputAdornment>
+                        ),
+                      }}
+                    />
+
+                    <Typography variant="h6" sx={{ color: theme.palette.secondary[100], mt: 2 }}>
+                      Change Password
+                    </Typography>
+
+                    <TextField
+                      label="Current Password"
+                      name="currentPassword"
+                      type={showPasswords.current ? "text" : "password"}
+                      value={formData.currentPassword}
+                      onChange={handleInputChange}
+                      error={!!errors.currentPassword}
+                      helperText={errors.currentPassword}
+                      fullWidth
+                      InputProps={{
+                        startAdornment: (
+                          <InputAdornment position="start">
+                            <LockIcon sx={{ color: theme.palette.secondary[300] }} />
+                          </InputAdornment>
+                        ),
+                        endAdornment: (
+                          <InputAdornment position="end">
+                            <IconButton
+                              onClick={() => togglePasswordVisibility("current")}
+                              edge="end"
+                            >
+                              {showPasswords.current ? <VisibilityOffIcon /> : <VisibilityIcon />}
+                            </IconButton>
+                          </InputAdornment>
+                        ),
+                      }}
+                    />
+
+                    <TextField
+                      label="New Password"
+                      name="newPassword"
+                      type={showPasswords.new ? "text" : "password"}
+                      value={formData.newPassword}
+                      onChange={handleInputChange}
+                      error={!!errors.newPassword}
+                      helperText={errors.newPassword}
+                      fullWidth
+                      InputProps={{
+                        startAdornment: (
+                          <InputAdornment position="start">
+                            <LockIcon sx={{ color: theme.palette.secondary[300] }} />
+                          </InputAdornment>
+                        ),
+                        endAdornment: (
+                          <InputAdornment position="end">
+                            <IconButton
+                              onClick={() => togglePasswordVisibility("new")}
+                              edge="end"
+                            >
+                              {showPasswords.new ? <VisibilityOffIcon /> : <VisibilityIcon />}
+                            </IconButton>
+                          </InputAdornment>
+                        ),
+                      }}
+                    />
+
+                    <TextField
+                      label="Confirm New Password"
+                      name="confirmPassword"
+                      type={showPasswords.confirm ? "text" : "password"}
+                      value={formData.confirmPassword}
+                      onChange={handleInputChange}
+                      error={!!errors.confirmPassword}
+                      helperText={errors.confirmPassword}
+                      fullWidth
+                      InputProps={{
+                        startAdornment: (
+                          <InputAdornment position="start">
+                            <LockIcon sx={{ color: theme.palette.secondary[300] }} />
+                          </InputAdornment>
+                        ),
+                        endAdornment: (
+                          <InputAdornment position="end">
+                            <IconButton
+                              onClick={() => togglePasswordVisibility("confirm")}
+                              edge="end"
+                            >
+                              {showPasswords.confirm ? <VisibilityOffIcon /> : <VisibilityIcon />}
+                            </IconButton>
+                          </InputAdornment>
+                        ),
+                      }}
+                    />
+
+                    <Box sx={{ display: "flex", justifyContent: "flex-end", gap: 2, mt: 2 }}>
+                      <Button
+                        type="button"
+                        variant="outlined"
+                        onClick={forceUserUpdate}
+                        disabled={isLoading || formData.email === originalEmail}
+                        sx={{
+                          borderColor: theme.palette.secondary[300],
+                          color: theme.palette.secondary[300],
+                          "&:hover": {
+                            borderColor: theme.palette.secondary[100],
+                            backgroundColor: "rgba(255, 255, 255, 0.08)",
+                          },
+                        }}
+                      >
+                        Force Update
+                      </Button>
+                      <Button
+                        type="submit"
+                        variant="contained"
+                        disabled={isLoading}
+                        sx={{
+                          backgroundColor: theme.palette.secondary[300],
+                          color: theme.palette.background.alt,
+                          "&:hover": {
+                            backgroundColor: theme.palette.secondary[100],
+                          },
+                          minWidth: "150px",
+                        }}
+                      >
+                        {isLoading ? (
+                          <CircularProgress size={24} color="inherit" />
+                        ) : (
+                          "Save Changes"
+                        )}
+                      </Button>
+                    </Box>
+                  </Box>
+                </form>
+                
+                {debugInfo && (
+                  <Paper 
+                    elevation={0} 
+                    sx={{ 
+                      mt: 3, 
+                      p: 2, 
+                      backgroundColor: 'rgba(0,0,0,0.05)',
+                      borderRadius: '4px',
+                    }}
+                  >
+                    <Typography variant="subtitle2" color="text.secondary">Debug Information:</Typography>
+                    <pre style={{ 
+                      overflowX: 'auto', 
+                      fontSize: '12px',
+                      marginTop: '8px'
+                    }}>
+                      {JSON.stringify(debugInfo, null, 2)}
+                    </pre>
+                  </Paper>
+                )}
+              </CardContent>
+            </Card>
+          </Grid>
+          
+          {/* API Token Management */}
+          <Grid item xs={12} md={5}>
+            <ApiTokenManager />
+            <ApiClientExample />
+          </Grid>
+        </Grid>
       </Box>
 
       <Snackbar

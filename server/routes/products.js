@@ -2,23 +2,24 @@
 const express = require('express');
 const router = express.Router();
 const productController = require('../controllers/productController');
+const { combinedAuth, auth } = require('../middleware/auth');
 
-// Create a new product
-router.post('/', productController.createProduct);
+// Create a new product - requires authentication
+router.post('/', combinedAuth, productController.createProduct);
 
-// Get all products
+// Get all products - public endpoint
 router.get('/', productController.getProducts);
 
-// Search products
+// Search products - public endpoint
 router.get('/search', productController.searchProducts);
 
-// Get a single product
+// Get a single product - public endpoint
 router.get('/:id', productController.getProduct);
 
-// Update a product
-router.put('/:id', productController.updateProduct);
+// Update a product - requires authentication
+router.put('/:id', combinedAuth, productController.updateProduct);
 
-// Delete a product
-router.delete('/:id', productController.deleteProduct);
+// Delete a product - requires authentication
+router.delete('/:id', combinedAuth, productController.deleteProduct);
 
 module.exports = router;

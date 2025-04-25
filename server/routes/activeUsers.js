@@ -2,12 +2,15 @@
 const express = require('express');
 const router = express.Router();
 const activeUserController = require('../controllers/activeUserController');
+const { combinedAuth } = require('../middleware/auth');
 
-// Routes without authentication
-router.get('/', activeUserController.getActiveUsers);
+// Public route - creates user sessions
 router.post('/', activeUserController.createActiveSession);
-router.put('/:id', activeUserController.updateSession);
-router.delete('/:id', activeUserController.endSession);
-router.get('/statistics', activeUserController.getActiveUserStats);
+
+// Protected routes - viewing and managing sessions requires auth
+router.get('/', combinedAuth, activeUserController.getActiveUsers);
+router.put('/:id', combinedAuth, activeUserController.updateSession);
+router.delete('/:id', combinedAuth, activeUserController.endSession);
+router.get('/statistics', combinedAuth, activeUserController.getActiveUserStats);
 
 module.exports = router;

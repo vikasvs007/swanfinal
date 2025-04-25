@@ -88,6 +88,64 @@ const adminAuth = async (req, res, next) => {
   }
 };
 
+// Simple API key/token authentication (for programmatic access)
+const apiKeyAuth = (req, res, next) => {
+  try {
+    // Get token from header and validate format
+    const authHeader = req.header('Authorization');
+    if (!authHeader) {
+      return res.status(401).json({
+        success: false,
+        message: 'Authorization header missing'
+      });
+    }
+
+    let token;
+    if (authHeader.startsWith('Bearer ')) {
+      token = authHeader.replace('Bearer ', '');
+    } else if (authHeader.startsWith('ApiKey ')) {
+      token = authHeader.replace('ApiKey ', '');
+    } else {
+      return res.status(401).json({
+        success: false,
+        message: 'Invalid authorization format'
+      });
+    }
+
+    // Check if token matches the API key in environment variables
+    if (token !== process.env.API_SECRET_TOKEN) {
+      return res.status(401).json({
+        success: false,
+        message: 'Invalid API token'
+      });
+    }
+
+    // Add API client flag to request
+    req.isApiClient = true;
+    next();
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: 'Server error during API authentication',
+      error: process.env.NODE_ENV === 'development' ? error.message : undefined
+    });
+  }
+};
+
+// Combined auth middleware that checks for either JWT auth or API key
+const combinedAuth = async (req, res, next) => {
+  // Check for API key first
+  const authHeader = req.header('Authorization');
+  
+  if (authHeader && (authHeader.startsWith('ApiKey ') || 
+     (authHeader.startsWith('Bearer ') && authHeader.replace('Bearer ', '') === process.env.API_SECRET_TOKEN))) {
+    return apiKeyAuth(req, res, next);
+  }
+  
+  // Fall back to JWT authentication
+  return auth(req, res, next);
+};
+
 // Rate limiting middleware
 const rateLimit = require('express-rate-limit');
 
@@ -100,4 +158,4 @@ const authLimiter = rateLimit({
   }
 });
 
-module.exports = { auth, adminAuth, authLimiter };
+module.exports = { auth, adminAuth, apiKeyAuth, combinedAuth, authLimiter };

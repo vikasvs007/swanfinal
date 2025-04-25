@@ -2,6 +2,7 @@
 const express = require('express');
 const router = express.Router();
 const blogController = require('../controllers/blogController');
+const { combinedAuth } = require('../middleware/auth');
 const multer = require('multer');
 const path = require('path');
 const fs = require('fs');
@@ -38,19 +39,19 @@ const upload = multer({
   }
 });
 
-// Get all blogs with filtering/pagination
+// Get all blogs with filtering/pagination - public endpoint
 router.get('/', blogController.getAllBlogs);
 
-// Get blog categories
+// Get blog categories - public endpoint
 router.get('/categories', blogController.getBlogCategories);
 
-// Get blog tags
+// Get blog tags - public endpoint
 router.get('/tags', blogController.getBlogTags);
 
-// Get blog by ID
+// Get blog by ID - public endpoint
 router.get('/:id', blogController.getBlog);
 
-// Get blog by slug
+// Get blog by slug - public endpoint
 router.get('/slug/:slug', blogController.getBlogBySlug);
 
 // Upload error handler middleware
@@ -75,16 +76,16 @@ const handleUploadErrors = (err, req, res, next) => {
   next();
 };
 
-// Upload an image for a blog
-router.post('/upload-image', upload.single('image'), handleUploadErrors, blogController.uploadImage);
+// Upload an image for a blog - requires authentication
+router.post('/upload-image', combinedAuth, upload.single('image'), handleUploadErrors, blogController.uploadImage);
 
-// Create a new blog
-router.post('/', blogController.createBlog);
+// Create a new blog - requires authentication
+router.post('/', combinedAuth, blogController.createBlog);
 
-// Update a blog
-router.put('/:id', blogController.updateBlog);
+// Update a blog - requires authentication
+router.put('/:id', combinedAuth, blogController.updateBlog);
 
-// Delete a blog
-router.delete('/:id', blogController.deleteBlog);
+// Delete a blog - requires authentication
+router.delete('/:id', combinedAuth, blogController.deleteBlog);
 
 module.exports = router; 

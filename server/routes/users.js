@@ -2,20 +2,21 @@
 const express = require('express');
 const router = express.Router();
 const userController = require('../controllers/userController');
+const { combinedAuth, adminAuth } = require('../middleware/auth');
 
-// Create a new user
+// Create a new user - public for registration
 router.post('/', userController.createUser);
 
-// Get all users
-router.get('/', userController.getAllUsers);
+// Get all users - admin only
+router.get('/', adminAuth, userController.getAllUsers);
 
-// Get a single user
-router.get('/:id', userController.getUser);
+// Get a single user - authenticated users can view their own profile
+router.get('/:id', combinedAuth, userController.getUser);
 
-// Update a user
-router.put('/:id', userController.updateUser);
+// Update a user - authenticated users can update their own profile
+router.put('/:id', combinedAuth, userController.updateUser);
 
-// Delete a user
-router.delete('/:id', userController.deleteUser);
+// Delete a user - admin only
+router.delete('/:id', adminAuth, userController.deleteUser);
 
 module.exports = router;

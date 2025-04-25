@@ -1,14 +1,17 @@
 const express = require('express');
 const router = express.Router();
 const visitorController = require('../controllers/visitorController');
+const { combinedAuth, adminAuth } = require('../middleware/auth');
 
-// Routes without authentication
-router.get('/', visitorController.getVisitors);
-router.get('/ip/:ip', visitorController.getVisitorByIp);
+// Public route - tracking visitors should work without auth
 router.post('/', visitorController.createOrUpdateVisitor);
-router.put('/:id', visitorController.updateVisitor);
-router.delete('/:id', visitorController.deleteVisitor);
-router.get('/statistics', visitorController.getVisitorStats);
-router.get('/geography', visitorController.getVisitorGeography);
+
+// Protected routes - require authentication
+router.get('/', combinedAuth, visitorController.getVisitors);
+router.get('/ip/:ip', combinedAuth, visitorController.getVisitorByIp);
+router.put('/:id', combinedAuth, visitorController.updateVisitor);
+router.delete('/:id', combinedAuth, visitorController.deleteVisitor);
+router.get('/statistics', combinedAuth, visitorController.getVisitorStats);
+router.get('/geography', combinedAuth, visitorController.getVisitorGeography);
 
 module.exports = router;

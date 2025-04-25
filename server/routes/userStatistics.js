@@ -1,12 +1,15 @@
 const express = require('express');
 const router = express.Router();
 const userStatisticsController = require('../controllers/userStatisticsController');
+const { combinedAuth } = require('../middleware/auth');
 
-// Routes without authentication
-router.get('/', userStatisticsController.getAllStatistics);
-router.get('/user/:userId', userStatisticsController.getUserStatistics);
+// Public route - allows recording statistics
 router.post('/', userStatisticsController.createOrUpdateStatistics);
-router.delete('/:id', userStatisticsController.deleteStatistics);
-router.get('/overall', userStatisticsController.getOverallStatistics);
+
+// Protected routes - viewing and managing statistics requires auth
+router.get('/', combinedAuth, userStatisticsController.getAllStatistics);
+router.get('/user/:userId', combinedAuth, userStatisticsController.getUserStatistics);
+router.delete('/:id', combinedAuth, userStatisticsController.deleteStatistics);
+router.get('/overall', combinedAuth, userStatisticsController.getOverallStatistics);
 
 module.exports = router;

@@ -6,6 +6,7 @@ import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
 import { themeSettings } from "theme";
 import { setToken } from "state";
 import React from "react";
+import { initializeApiToken } from "utils/apiToken";
 
 import Layout from "scenes/layout";
 import Dashboard from "scenes/dashboard";
@@ -48,10 +49,14 @@ function App() {
   // Initialize token from localStorage if it exists
   const dispatch = useDispatch();
   useEffect(() => {
+    // Initialize JWT token for user authentication
     const storedToken = localStorage.getItem('authToken');
     if (storedToken && !isLoggedIn) {
       dispatch(setToken(storedToken));
     }
+
+    // Initialize API token for programmatic access
+    initializeApiToken();
   }, [dispatch, isLoggedIn]);
 
   console.log("Auth status:", isLoggedIn ? "Logged in" : "Not logged in");

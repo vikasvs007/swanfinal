@@ -2,20 +2,21 @@
 const express = require('express');
 const router = express.Router();
 const orderController = require('../controllers/orderController');
+const { combinedAuth } = require('../middleware/auth');
 
-// Create a new order
-router.post('/', orderController.createOrder);
+// Create a new order - requires authentication
+router.post('/', combinedAuth, orderController.createOrder);
 
-// Get all orders
-router.get('/', orderController.getAllOrders);
+// Get all orders - requires authentication
+router.get('/', combinedAuth, orderController.getAllOrders);
 
-// Get a single order
-router.get('/:id', orderController.getOrder);
+// Get a single order - requires authentication
+router.get('/:id', combinedAuth, orderController.getOrder);
 
-// Update an order
-router.put('/:id', orderController.updateOrder);
+// Update an order - requires authentication
+router.put('/:id', combinedAuth, orderController.updateOrder);
 
-// Delete an order
-router.delete('/:id', orderController.deleteOrder);
+// Delete an order - requires authentication
+router.delete('/:id', combinedAuth, orderController.deleteOrder);
 
 module.exports = router;

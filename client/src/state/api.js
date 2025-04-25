@@ -4,10 +4,20 @@ export const api = createApi({
   baseQuery: fetchBaseQuery({
     baseUrl: process.env.REACT_APP_BASE_URL ,
     prepareHeaders: (headers, { getState }) => {
+      // Get token from Redux state
       const token = getState().global?.token;
-      if (token) {
+      
+      // Check for API token in localStorage
+      const apiToken = localStorage.getItem('apiToken');
+      
+      if (apiToken) {
+        // Use ApiKey authorization header for API token
+        headers.set("authorization", `ApiKey ${apiToken}`);
+      } else if (token) {
+        // Use Bearer authorization header for JWT token
         headers.set("authorization", `Bearer ${token}`);
       }
+      
       return headers;
     },
   }),
