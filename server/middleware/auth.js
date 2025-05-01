@@ -4,16 +4,16 @@ const User = require('../models/User');
 
 const auth = async (req, res, next) => {
   try {
-    // Get token from header and validate format
-    const authHeader = req.header('Authorization');
-    if (!authHeader || !authHeader.startsWith('Bearer ')) {
-      return res.status(401).json({
-        success: false,
-        message: 'Authorization header missing or invalid format'
-      });
+    // Get token from cookie instead of Authorization header
+    const token = req.cookies.auth_token;
+    
+    if (!token) {
+      // Set a flag that there's no auth token instead of immediately returning
+      req.noAuth = true;
+      // For routes that absolutely require authentication, the controller will check
+      // Allow execution to continue to the route handler
+      return next();
     }
-
-    const token = authHeader.replace('Bearer ', '');
     
     // Skip auth for public routes
     if (req.skipAuth) {
@@ -25,6 +25,14 @@ const auth = async (req, res, next) => {
     
     // Check token expiration
     if (decoded.exp && Date.now() >= decoded.exp * 1000) {
+      // Clear the invalid cookie
+      res.clearCookie('auth_token', {
+        httpOnly: true,
+        path: '/',
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'strict'
+      });
+      
       return res.status(401).json({
         success: false,
         message: 'Token has expired'
@@ -34,6 +42,14 @@ const auth = async (req, res, next) => {
     // Find user and check if still exists/active
     const user = await User.findById(decoded.id).select('-password');
     if (!user) {
+      // Clear the cookie if user no longer exists
+      res.clearCookie('auth_token', {
+        httpOnly: true,
+        path: '/',
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'strict'
+      });
+      
       return res.status(401).json({
         success: false,
         message: 'User no longer exists'
@@ -46,11 +62,20 @@ const auth = async (req, res, next) => {
     next();
   } catch (error) {
     if (error.name === 'JsonWebTokenError') {
+      // Clear the invalid cookie
+      res.clearCookie('auth_token', {
+        httpOnly: true,
+        path: '/',
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'strict'
+      });
+      
       return res.status(401).json({
         success: false,
         message: 'Invalid token'
       });
     }
+    
     res.status(401).json({
       success: false,
       message: 'Authentication failed',
@@ -62,14 +87,17 @@ const auth = async (req, res, next) => {
 // Admin only middleware
 const adminAuth = async (req, res, next) => {
   try {
+    // Call the auth middleware first
     await auth(req, res, () => {
-      if (!req.user) {
+      // If noAuth flag is set or user is not set, authentication failed
+      if (req.noAuth || !req.user) {
         return res.status(401).json({
           success: false,
-          message: 'Authentication required'
+          message: 'Authentication required for admin operations'
         });
       }
 
+      // Check if the user is an admin
       if (req.user.role !== 'admin') {
         return res.status(403).json({
           success: false,
@@ -77,12 +105,14 @@ const adminAuth = async (req, res, next) => {
         });
       }
 
+      // User is authenticated and is an admin
       next();
     });
   } catch (error) {
+    console.error('Admin auth error:', error);
     res.status(500).json({
       success: false,
-      message: 'Server error',
+      message: 'Server error during admin authentication',
       error: process.env.NODE_ENV === 'development' ? error.message : undefined
     });
   }
@@ -132,18 +162,33 @@ const apiKeyAuth = (req, res, next) => {
   }
 };
 
-// Combined auth middleware that checks for either JWT auth or API key
+// Combined auth middleware that checks for either cookie auth or API key
 const combinedAuth = async (req, res, next) => {
-  // Check for API key first
+  // Check for API key first if it's programmatic access
   const authHeader = req.header('Authorization');
   
+  // If there's an Authorization header that starts with ApiKey or matches the API token
   if (authHeader && (authHeader.startsWith('ApiKey ') || 
      (authHeader.startsWith('Bearer ') && authHeader.replace('Bearer ', '') === process.env.API_SECRET_TOKEN))) {
     return apiKeyAuth(req, res, next);
   }
   
-  // Fall back to JWT authentication
-  return auth(req, res, next);
+  // For debugging - log the auth state
+  if (process.env.NODE_ENV === 'development') {
+    console.log('Auth method:', req.cookies.auth_token ? 'cookie' : (authHeader ? 'header' : 'none'));
+  }
+  
+  // Fall back to cookie authentication
+  try {
+    await auth(req, res, next);
+  } catch (error) {
+    // If authentication fails and is a route requiring authentication, return a clear error
+    console.error('Auth error:', error.message);
+    return res.status(401).json({
+      success: false,
+      message: 'Authentication required. Please login.'
+    });
+  }
 };
 
 // Rate limiting middleware

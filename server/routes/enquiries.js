@@ -4,8 +4,8 @@ const router = express.Router();
 const enquiryController = require('../controllers/enquiryController');
 const { combinedAuth } = require('../middleware/auth');
 
-// Create a new enquiry - public endpoint for users to submit enquiries
-router.post('/', enquiryController.createEnquiry);
+// Create a new enquiry - now requires authentication for security
+router.post('/', combinedAuth, enquiryController.createEnquiry);
 
 // Get all enquiries - protected endpoint
 router.get('/', combinedAuth, enquiryController.getEnquiries);

@@ -10,6 +10,14 @@ export const api = createApi({
       // Check for API token in localStorage
       const apiToken = localStorage.getItem('apiToken');
       
+      // Debug token presence in development
+      if (process.env.NODE_ENV === 'development') {
+        console.log('Auth tokens available:', { 
+          reduxToken: !!token, 
+          apiToken: !!apiToken 
+        });
+      }
+      
       if (apiToken) {
         // Use ApiKey authorization header for API token
         headers.set("authorization", `ApiKey ${apiToken}`);
@@ -62,10 +70,22 @@ export const api = createApi({
       invalidatesTags: ["User"],
     }),
     deleteUser: build.mutation({
-      query: (id) => ({
-        url: `users/${id}`,
-        method: "DELETE",
-      }),
+      query: (id) => {
+        console.log('Deleting user with ID:', id);
+        return {
+          url: `users/${id}`,
+          method: "DELETE",
+        };
+      },
+      // Add onError callback for better error handling
+      async onQueryStarted(id, { dispatch, queryFulfilled }) {
+        try {
+          await queryFulfilled;
+          console.log('User deleted successfully:', id);
+        } catch (error) {
+          console.error('Error deleting user:', error);
+        }
+      },
       invalidatesTags: ["User"],
     }),
     uploadPhoto: build.mutation({

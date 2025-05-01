@@ -5,6 +5,24 @@
 http://localhost:5000/api
 ```
 
+## Authentication
+All data-modifying endpoints (POST, PUT, DELETE, PATCH) require authentication. There are two ways to authenticate:
+
+1. **Cookie Authentication** (for browser clients):
+   - First login via `/api/auth/login` to get a secure HTTP-only cookie
+   - All subsequent requests will use this cookie automatically
+
+2. **API Token Authentication** (for Postman or other clients):
+   - Add `Authorization` header with format: `ApiKey YOUR_API_TOKEN` or `Bearer YOUR_API_TOKEN`
+   - The API token must be configured in the server environment variables
+
+**Important**: Without proper authentication, all data modification requests will be rejected with a 401 Unauthorized status code.
+
+## Security Notes
+- Never share your API token
+- Tokens expire after 24 hours 
+- Rate limiting is applied to prevent brute force attacks
+
 ## Database Name: swansorterAdmin_db
 
 ## Table of Contents

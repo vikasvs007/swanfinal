@@ -1,12 +1,13 @@
 import { CssBaseline, ThemeProvider } from "@mui/material";
 import { createTheme } from "@mui/material/styles";
-import { useMemo, useEffect } from "react";
+import { useMemo, useEffect, useState } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
 import { themeSettings } from "theme";
 import { setToken } from "state";
 import React from "react";
-import { initializeApiToken } from "utils/apiToken";
+import { initializeSecureStorage } from './utils/cleanStorage';
+import { isAuthenticated, getCurrentUser } from './utils/auth';
 
 import Layout from "scenes/layout";
 import Dashboard from "scenes/dashboard";
@@ -31,10 +32,10 @@ import NotFound from "scenes/NotFound";
 
 // Protected route component that redirects to login if not authenticated
 const ProtectedRoute = ({ children }) => {
-  const isAuthenticated = localStorage.getItem('isAuthenticated') === 'true';
+  const isLoggedIn = isAuthenticated();
   const user = useSelector((state) => state.global.user);
   
-  if (!isAuthenticated && !user) {
+  if (!isLoggedIn && !user) {
     return <Navigate to="/login" replace />;
   }
   
@@ -45,21 +46,38 @@ function App() {
   // Create theme with light mode only
   const theme = useMemo(() => createTheme(themeSettings()), []);
   const isLoggedIn = useSelector((state) => state.global.token);
+  const [authChecked, setAuthChecked] = useState(false);
 
-  // Initialize token from localStorage if it exists
+  // Initialize token from secure cookies if user is authenticated
   const dispatch = useDispatch();
   useEffect(() => {
-    // Initialize JWT token for user authentication
-    const storedToken = localStorage.getItem('authToken');
-    if (storedToken && !isLoggedIn) {
-      dispatch(setToken(storedToken));
-    }
+    // Initialize secure storage and clean up any insecure tokens
+    initializeSecureStorage();
 
-    // Initialize API token for programmatic access
-    initializeApiToken();
-  }, [dispatch, isLoggedIn]);
+    // Check authentication status securely
+    const checkAuthStatus = async () => {
+      try {
+        if (isAuthenticated()) {
+          const userData = await getCurrentUser();
+          if (userData && userData.user) {
+            dispatch(setToken("secure-cookie-auth")); // Token is now in HttpOnly cookie
+          }
+        }
+      } catch (error) {
+        console.error("Error checking auth status:", error);
+      }
+      setAuthChecked(true);
+    };
+
+    checkAuthStatus();
+  }, [dispatch]);
 
   console.log("Auth status:", isLoggedIn ? "Logged in" : "Not logged in");
+
+  // Wait for auth check before rendering to prevent flashes of login screen
+  if (!authChecked && !isLoggedIn) {
+    return <div>Loading...</div>;
+  }
 
   return (
     <div className="app">

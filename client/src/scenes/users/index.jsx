@@ -56,6 +56,11 @@ const Users = () => {
 
   const [formErrors, setFormErrors] = useState({});
 
+  const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
+  const [userToDelete, setUserToDelete] = useState(null);
+  const [deleteError, setDeleteError] = useState(null);
+  const [isDeleting, setIsDeleting] = useState(false);
+
   // Function to generate Gmail compose URL
   const getGmailComposeUrl = (email) => {
     return `https://mail.google.com/mail/?view=cm&fs=1&to=${encodeURIComponent(email)}`;
@@ -197,11 +202,34 @@ const Users = () => {
     }
   };
 
+  const handleDeleteConfirmOpen = (user) => {
+    setUserToDelete(user);
+    setDeleteConfirmOpen(true);
+    setDeleteError(null);
+  };
+
+  const handleDeleteConfirmClose = () => {
+    setDeleteConfirmOpen(false);
+    setUserToDelete(null);
+    setDeleteError(null);
+  };
+
   const handleDeleteUser = async (id) => {
+    if (!id) return;
+    
+    setIsDeleting(true);
+    setDeleteError(null);
+    
     try {
-      await deleteUser(id).unwrap();
+      console.log('Attempting to delete user with ID:', id);
+      const response = await deleteUser(id).unwrap();
+      console.log('Delete response:', response);
+      handleDeleteConfirmClose();
     } catch (error) {
       console.error("Failed to delete user:", error);
+      setDeleteError(error.data?.message || "Failed to delete user. Please try again.");
+    } finally {
+      setIsDeleting(false);
     }
   };
 
@@ -324,7 +352,7 @@ const Users = () => {
             <EditIcon />
           </IconButton>
           <IconButton
-            onClick={() => handleDeleteUser(params.row._id)}
+            onClick={() => handleDeleteConfirmOpen(params.row)}
             sx={{ color: theme.palette.error.main }}
           >
             <DeleteIcon />
@@ -586,6 +614,46 @@ const Users = () => {
             }}
           >
             {selectedUser ? "Update" : "Add"}
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      <Dialog
+        open={deleteConfirmOpen}
+        onClose={!isDeleting ? handleDeleteConfirmClose : undefined}
+        aria-labelledby="alert-dialog-title"
+        aria-describedby="alert-dialog-description"
+      >
+        <DialogTitle id="alert-dialog-title">{"Confirm Delete"}</DialogTitle>
+        <DialogContent>
+          <Typography>
+            Are you sure you want to delete {userToDelete?.name}?
+          </Typography>
+          {userToDelete?.role === 'admin' && (
+            <Typography color="warning.main" sx={{ mt: 1 }}>
+              Warning: You are deleting an admin user!
+            </Typography>
+          )}
+          {deleteError && (
+            <Typography color="error" sx={{ mt: 1 }}>
+              Error: {deleteError}
+            </Typography>
+          )}
+        </DialogContent>
+        <DialogActions>
+          <Button 
+            onClick={handleDeleteConfirmClose}
+            disabled={isDeleting}
+          >
+            Cancel
+          </Button>
+          <Button 
+            onClick={() => userToDelete?._id && handleDeleteUser(userToDelete._id)} 
+            color="error"
+            disabled={isDeleting}
+            startIcon={isDeleting ? <CircularProgress size={20} /> : <DeleteIcon />}
+          >
+            {isDeleting ? "Deleting..." : "Delete"}
           </Button>
         </DialogActions>
       </Dialog>

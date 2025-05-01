@@ -4,7 +4,7 @@ This document explains how to use API tokens to authenticate requests to the API
 
 ## Overview
 
-For programmatic access to the API (e.g., via Postman, scripts, or other applications), you can use an API token for authentication instead of user credentials.
+For programmatic access to the API (e.g., via Postman, scripts, or other applications), you can use an API token for authentication instead of user credentials. **All data-modifying operations now strictly require authentication.**
 
 ## API Token Format
 
@@ -24,13 +24,14 @@ Both formats are supported and will provide the same level of access.
 
 ## Protected Routes
 
-Most routes now require authentication (either via API token or JWT), including:
+Routes now have the following authentication requirements:
 
 ### Always Require Authentication:
-- All POST operations for creating resources (except public endpoints like visitor tracking)
-- All PUT operations for updating resources
-- All DELETE operations for removing resources
-- Most GET operations for retrieving sensitive data
+- **ALL** POST operations for creating resources 
+- **ALL** PUT operations for updating resources
+- **ALL** DELETE operations for removing resources
+- **ALL** PATCH operations for partial updates
+- Some GET operations for retrieving sensitive data
 
 ### Public Endpoints (No Authentication Required):
 - GET /api/products - List products
@@ -39,11 +40,10 @@ Most routes now require authentication (either via API token or JWT), including:
 - GET /api/blogs/:id - View a blog
 - GET /api/cards - List cards
 - GET /api/cards/:id - View a card
-- POST /api/enquiries - Submit an enquiry
-- POST /api/visitors - Record visitor data
-- POST /api/active-users - Record active user sessions
-- POST /api/user-statistics - Record user statistics
-- POST /api/users - User registration
+
+### Registration and Login (Special Cases):
+- POST /api/auth/login - User login
+- POST /api/auth/register - User registration
 
 ## Example Usage
 

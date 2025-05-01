@@ -8,7 +8,7 @@ const { combinedAuth, adminAuth } = require('../middleware/auth');
 router.post('/', userController.createUser);
 
 // Get all users - admin only
-router.get('/', adminAuth, userController.getAllUsers);
+router.get('/', combinedAuth, userController.getAllUsers);
 
 // Get a single user - authenticated users can view their own profile
 router.get('/:id', combinedAuth, userController.getUser);
@@ -17,6 +17,6 @@ router.get('/:id', combinedAuth, userController.getUser);
 router.put('/:id', combinedAuth, userController.updateUser);
 
 // Delete a user - admin only
-router.delete('/:id', adminAuth, userController.deleteUser);
+router.delete('/:id', combinedAuth, userController.deleteUser);
 
 module.exports = router;

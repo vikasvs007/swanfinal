@@ -3,16 +3,21 @@ const mongoose = require('mongoose');
 const userSchema = new mongoose.Schema({
   name: { 
     type: String, 
-    required: true 
+    required: true,
+    trim: true
   },
   email: { 
     type: String, 
     required: true, 
-    unique: true 
+    unique: true,
+    trim: true,
+    lowercase: true,
+    match: [/^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/, 'Please provide a valid email address']
   },
   phone: { 
     type: String, 
-    required: true 
+    required: true,
+    trim: true
   },
   password: { 
     type: String, 
@@ -38,4 +43,10 @@ const userSchema = new mongoose.Schema({
   timestamps: { createdAt: 'created_at', updatedAt: 'updated_at' }
 });
 
-module.exports = mongoose.model('Users', userSchema);
+// Add indexes for better performance
+userSchema.index({ email: 1 });
+userSchema.index({ is_active: 1 });
+userSchema.index({ role: 1 });
+
+// Set collection name explicitly to avoid collection name issues
+module.exports = mongoose.model('User', userSchema, 'users');

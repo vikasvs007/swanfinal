@@ -2,7 +2,7 @@
 const express = require('express');
 const router = express.Router();
 const productController = require('../controllers/productController');
-const { combinedAuth, auth } = require('../middleware/auth');
+const { combinedAuth, adminAuth } = require('../middleware/auth');
 
 // Create a new product - requires authentication
 router.post('/', combinedAuth, productController.createProduct);
@@ -19,7 +19,7 @@ router.get('/:id', productController.getProduct);
 // Update a product - requires authentication
 router.put('/:id', combinedAuth, productController.updateProduct);
 
-// Delete a product - requires authentication
-router.delete('/:id', combinedAuth, productController.deleteProduct);
+// Delete a product - requires authentication (should be admin level)
+router.delete('/:id', adminAuth, productController.deleteProduct);
 
 module.exports = router;
