@@ -11,7 +11,7 @@ When making requests from external tools like Postman, you must include an API t
 - Updating existing records (PUT/PATCH requests)
 - Deleting records (DELETE requests)
 
-GET requests for public data do not require authentication.
+**GET requests are now public and do not require authentication.** This allows for easy read access to public data while still protecting data modifications.
 
 ## How to Use API Tokens
 
@@ -41,10 +41,14 @@ Authorization: ApiKey your_api_token_here
 ### Example with cURL
 
 ```bash
+# Example of a protected POST request (requires API token)
 curl -X POST https://your-api-domain.com/api/products \
   -H "Content-Type: application/json" \
   -H "Authorization: Bearer your_api_token_here" \
   -d '{"name": "Product Name", "price": 19.99, "description": "Product description"}'
+
+# Example of a public GET request (no API token required)
+curl -X GET https://your-api-domain.com/api/products
 ```
 
 ## Obtaining an API Token
@@ -70,6 +74,15 @@ Or if the token is invalid:
   "message": "Invalid API token"
 }
 ```
+
+## Authentication Summary
+
+| HTTP Method | Authentication Required |
+|-------------|-------------------------|
+| GET         | No (Public Access)      |
+| POST        | Yes (API Token)         |
+| PUT/PATCH   | Yes (API Token)         |
+| DELETE      | Yes (API Token)         |
 
 ## Note for Web Application Users
 
