@@ -85,8 +85,8 @@ const BlogDetail = () => {
   
   // More extensive debugging to track down the issue
   React.useEffect(() => {
-    console.log("BlogDetail component mounted, ID:", id);
-    console.log("API URL being used:", process.env.REACT_APP_BASE_URL || "https://swanbackend.onrender.com/api");
+    // console.log("BlogDetail component mounted, ID:", id);
+    // console.log("API URL being used:", process.env.REACT_APP_BASE_URL || "https://swanbackend.onrender.com/api");
     
     if (error) {
       console.error("Error fetching blog:", error);
@@ -101,7 +101,7 @@ const BlogDetail = () => {
     }
     
     if (data) {
-      console.log("Blog data loaded successfully:", data);
+      console.log("Blog data loaded successfully:");
     }
   }, [id, data, error]);
   

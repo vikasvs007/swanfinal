@@ -20,6 +20,6 @@ router.get('/:id', productController.getProduct);
 router.put('/:id', combinedAuth, productController.updateProduct);
 
 // Delete a product - requires authentication (should be admin level)
-router.delete('/:id', adminAuth, productController.deleteProduct);
+router.delete('/:id', combinedAuth, productController.deleteProduct);
 
 module.exports = router;

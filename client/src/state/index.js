@@ -2,7 +2,7 @@ import { createSlice } from "@reduxjs/toolkit";
 
 const initialState = {
   mode: "dark",
-  userId: "67ab741b4ed113b4940fac28", // Make sure this matches your admin user ID
+  userId: "", // Clean userId without any special characters
   user: null,
   token: null, // Add token field to track authentication
 };

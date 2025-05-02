@@ -76,7 +76,7 @@ const Blogs = () => {
   
   // Log data for debugging
   React.useEffect(() => {
-    console.log("Blogs data:", data);
+    console.log("Blogs data:");
     if (error) {
       console.error("Error fetching blogs:", error);
     }
@@ -106,7 +106,7 @@ const Blogs = () => {
   
   const handleViewClick = (blog) => {
     // Use React Router navigation instead of window.open
-    console.log("Navigating to blog:", blog._id);
+    // console.log("Navigating to blog:", blog._id);
     // Option 1: Navigate in same tab
     navigate(`/blogs/${blog._id}`);
     
