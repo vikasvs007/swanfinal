@@ -16,14 +16,7 @@ const userController = {
   // Read all
   async getAllUsers(req, res) {
     try {
-      // Check if the user has a valid token
-      if (!req.user && !req.isApiClient) {
-        return res.status(401).json({ 
-          success: false,
-          message: 'Authentication required to access user data' 
-        });
-      }
-      
+      // Authentication check removed to allow public access
       const users = await User.find();
       res.json(users);
     } catch (error) {
