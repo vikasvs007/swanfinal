@@ -1,107 +1,76 @@
-# API Token Authentication Guide
-
-This document explains how to use API tokens to authenticate requests to the API.
+# API Token Authentication
 
 ## Overview
 
-For programmatic access to the API (e.g., via Postman, scripts, or other applications), you can use an API token for authentication instead of user credentials. **All data-modifying operations now strictly require authentication.**
+This API uses token-based authentication for external clients (such as Postman, cURL, or custom applications) that access data modification endpoints. This ensures that only authorized applications can create, update, or delete data.
 
-## API Token Format
+## Token Requirements
 
-The API token should be included in the `Authorization` header of your requests using one of the following formats:
+When making requests from external tools like Postman, you must include an API token in the Authorization header for the following operations:
+- Creating new records (POST requests)
+- Updating existing records (PUT/PATCH requests)
+- Deleting records (DELETE requests)
 
-1. Bearer Token:
+GET requests for public data do not require authentication.
+
+## How to Use API Tokens
+
+### Authorization Header Format
+
+Include your API token in the request headers using one of these formats:
+
 ```
-Authorization: Bearer swanapi_sec_token_7890xyz
+Authorization: Bearer your_api_token_here
 ```
 
-2. API Key:
+or 
+
 ```
-Authorization: ApiKey swanapi_sec_token_7890xyz
+Authorization: ApiKey your_api_token_here
 ```
 
-Both formats are supported and will provide the same level of access.
+### Example in Postman
 
-## Protected Routes
+1. Create a new request in Postman
+2. Go to the "Headers" tab
+3. Add a header with:
+   - Key: `Authorization`
+   - Value: `Bearer your_api_token_here`
+4. Send your request
 
-Routes now have the following authentication requirements:
-
-### Always Require Authentication:
-- **ALL** POST operations for creating resources 
-- **ALL** PUT operations for updating resources
-- **ALL** DELETE operations for removing resources
-- **ALL** PATCH operations for partial updates
-- Some GET operations for retrieving sensitive data
-
-### Public Endpoints (No Authentication Required):
-- GET /api/products - List products
-- GET /api/products/:id - View a product
-- GET /api/blogs - List blogs
-- GET /api/blogs/:id - View a blog
-- GET /api/cards - List cards
-- GET /api/cards/:id - View a card
-
-### Registration and Login (Special Cases):
-- POST /api/auth/login - User login
-- POST /api/auth/register - User registration
-
-## Example Usage
-
-### Using cURL
+### Example with cURL
 
 ```bash
 curl -X POST https://your-api-domain.com/api/products \
-  -H "Authorization: Bearer swanapi_sec_token_7890xyz" \
   -H "Content-Type: application/json" \
-  -d '{"name": "New Product", "price": 99.99}'
+  -H "Authorization: Bearer your_api_token_here" \
+  -d '{"name": "Product Name", "price": 19.99, "description": "Product description"}'
 ```
 
-### Using Postman
+## Obtaining an API Token
 
-1. Create a new request
-2. Select the HTTP method (POST, PUT, DELETE)
-3. Enter the request URL
-4. Go to the "Headers" tab
-5. Add a header with Key "Authorization" and Value "Bearer swanapi_sec_token_7890xyz"
-6. Add your request body if needed
-7. Send the request
+For security reasons, API tokens are not publicly available. Contact the system administrator to obtain a valid API token for your application.
 
-### Using JavaScript/Node.js
+## Error Responses
 
-```javascript
-const axios = require('axios');
+If you try to access a protected endpoint without a valid token, you will receive:
 
-async function makeApiRequest() {
-  try {
-    const response = await axios({
-      method: 'post',
-      url: 'https://your-api-domain.com/api/products',
-      headers: {
-        'Authorization': 'Bearer swanapi_sec_token_7890xyz',
-        'Content-Type': 'application/json'
-      },
-      data: {
-        name: 'New Product',
-        price: 99.99
-      }
-    });
-    
-    console.log('Response:', response.data);
-  } catch (error) {
-    console.error('Error:', error.response ? error.response.data : error.message);
-  }
+```json
+{
+  "success": false,
+  "message": "Authorization header missing"
 }
-
-makeApiRequest();
 ```
 
-## Security Best Practices
+Or if the token is invalid:
 
-1. Keep your API token secure and do not share it publicly
-2. Use HTTPS for all API requests to encrypt data in transit
-3. Consider rotating your API token periodically
-4. Monitor API usage for suspicious activity
+```json
+{
+  "success": false,
+  "message": "Invalid API token"
+}
+```
 
-## Rate Limiting
+## Note for Web Application Users
 
-API token requests are subject to the same rate limiting as regular user requests to prevent abuse. 
+The web application handles authentication automatically using cookies. This token-based authentication is specifically for external API clients and does not affect normal website usage. 
