@@ -3,6 +3,8 @@ import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
 export const api = createApi({
   baseQuery: fetchBaseQuery({
     baseUrl: process.env.REACT_APP_BASE_URL,
+    credentials: 'include', // Important for CORS with cookies
+    mode: 'cors', // Explicitly set CORS mode
     prepareHeaders: (headers, { getState }) => {
       // Get token from Redux state
       const token = getState().global?.token;
@@ -17,6 +19,10 @@ export const api = createApi({
           apiToken: !!apiToken 
         });
       }
+      
+      // Add standard headers for CORS
+      headers.set('Content-Type', 'application/json');
+      headers.set('Accept', 'application/json');
       
       if (apiToken) {
         // Use ApiKey authorization header for API token

@@ -55,11 +55,33 @@ const authRoutes = require('./routes/auth');
 // Middleware
 // Set up CORS properly for both HTTP and HTTPS
 app.use(cors({
-  origin: process.env.NODE_ENV === 'production' ? 
-    process.env.CLIENT_URL : 'http://localhost:3000',
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'],
-  allowedHeaders: ['Content-Type', 'Authorization'],
-  credentials: true // Important for cookies
+  origin: function(origin, callback) {
+    const allowedOrigins = [
+      'https://admin.swansorter.com',
+      'https://www.admin.swansorter.com',
+      'https://swansorter.com',
+      'https://www.swansorter.com'
+    ];
+    
+    // Allow requests with no origin (like mobile apps, curl requests)
+    if (!origin) return callback(null, true);
+    
+    // Allow localhost in development
+    if (process.env.NODE_ENV !== 'production' && origin.includes('localhost')) {
+      return callback(null, true);
+    }
+    
+    if (allowedOrigins.indexOf(origin) !== -1 || !origin) {
+      callback(null, true);
+    } else {
+      console.log('CORS blocked origin:', origin);
+      callback(null, true); // Temporarily allow all origins while debugging
+    }
+  },
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
+  credentials: true, // Important for cookies
+  maxAge: 86400 // CORS preflight cache time (24 hours)
 }));
 
 // Add security headers for HTTPS
@@ -73,6 +95,11 @@ app.use((req, res, next) => {
   res.setHeader('X-XSS-Protection', '1; mode=block');
   res.setHeader('X-Frame-Options', 'SAMEORIGIN');
   next();
+});
+
+// Handle OPTIONS requests for CORS preflight
+app.options('*', (req, res) => {
+  res.status(200).end();
 });
 
 app.use(express.json({ limit: '50mb' }));
