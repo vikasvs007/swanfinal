@@ -2,7 +2,7 @@
 const express = require('express');
 const router = express.Router();
 const blogController = require('../controllers/blogController');
-const { combinedAuth } = require('../middleware/auth');
+const { combinedAuth, adminAuth } = require('../middleware/auth');
 const multer = require('multer');
 const path = require('path');
 const fs = require('fs');
@@ -40,7 +40,7 @@ const upload = multer({
 });
 
 // Get all blogs with filtering/pagination - public endpoint
-router.get('/', blogController.getAllBlogs);
+router.get('/posts', blogController.getAllBlogs);
 
 // Get blog categories - public endpoint
 router.get('/categories', blogController.getBlogCategories);
@@ -49,10 +49,10 @@ router.get('/categories', blogController.getBlogCategories);
 router.get('/tags', blogController.getBlogTags);
 
 // Get blog by ID - public endpoint
-router.get('/:id', blogController.getBlog);
+router.get('/posts/:id', blogController.getBlog);
 
 // Get blog by slug - public endpoint
-router.get('/slug/:slug', blogController.getBlogBySlug);
+router.get('/posts/slug/:slug', blogController.getBlogBySlug);
 
 // Upload error handler middleware
 const handleUploadErrors = (err, req, res, next) => {
@@ -76,16 +76,16 @@ const handleUploadErrors = (err, req, res, next) => {
   next();
 };
 
-// Upload an image for a blog - requires authentication
-router.post('/upload-image', combinedAuth, upload.single('image'), handleUploadErrors, blogController.uploadImage);
+// Upload an image for a blog - requires admin authentication
+router.post('/images/upload', adminAuth, upload.single('image'), handleUploadErrors, blogController.uploadImage);
 
-// Create a new blog - requires authentication
-router.post('/', combinedAuth, blogController.createBlog);
+// Create a new blog - requires admin authentication
+router.post('/posts/create', adminAuth, blogController.createBlog);
 
-// Update a blog - requires authentication
-router.put('/:id', combinedAuth, blogController.updateBlog);
+// Update a blog - requires admin authentication
+router.put('/posts/update/:id', adminAuth, blogController.updateBlog);
 
-// Delete a blog - requires authentication
-router.delete('/:id', combinedAuth, blogController.deleteBlog);
+// Delete a blog - requires admin authentication
+router.delete('/posts/remove/:id', adminAuth, blogController.deleteBlog);
 
 module.exports = router; 

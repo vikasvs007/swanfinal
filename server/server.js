@@ -160,12 +160,12 @@ const checkDatabaseConnection = (req, res, next) => {
 // API routes with database connection check
 app.use('/api/auth', checkDatabaseConnection, authRoutes);
 app.use('/api/users', checkDatabaseConnection, externalApiAuth, userRoutes);
-app.use('/api/products', checkDatabaseConnection, externalApiAuth, productRoutes);
+app.use('/api/v1/data/items', checkDatabaseConnection, externalApiAuth, productRoutes);
 app.use('/api/orders', checkDatabaseConnection, externalApiAuth, orderRoutes);
-app.use('/api/enquiries', checkDatabaseConnection, externalApiAuth, enquiryRoutes);
+app.use('/api/v1/data/inquiries', checkDatabaseConnection, externalApiAuth, enquiryRoutes);
 app.use('/api/notifications', checkDatabaseConnection, externalApiAuth, notificationRoutes);
 app.use('/api/active-users', checkDatabaseConnection, externalApiAuth, activeUserRoutes);
-app.use('/api/visitors', checkDatabaseConnection, externalApiAuth, visitorRoutes);
+app.use('/api/v1/data/visitors', checkDatabaseConnection, externalApiAuth, visitorRoutes);
 app.use('/api/user-statistics', checkDatabaseConnection, externalApiAuth, userStatisticsRoutes);
 app.use('/api/blogs', checkDatabaseConnection, externalApiAuth, blogRoutes);
 app.use('/api/cards', checkDatabaseConnection, externalApiAuth, cardRoutes);

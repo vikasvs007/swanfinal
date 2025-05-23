@@ -4,7 +4,7 @@ const multer = require('multer');
 const path = require('path');
 const fs = require('fs');
 const cardController = require('../controllers/cardController');
-const { combinedAuth } = require('../middleware/auth');
+const { combinedAuth, adminAuth } = require('../middleware/auth');
 
 // Ensure upload directory exists (for temporary file uploads)
 const uploadDir = path.join(__dirname, '../uploads/cards');
@@ -61,21 +61,21 @@ const handleUploadErrors = (err, req, res, next) => {
 };
 
 // Get all cards - public endpoint
-router.get('/', cardController.getAllCards);
+router.get('/list', cardController.getAllCards);
 
 // Get a single card by ID - public endpoint
-router.get('/:id', cardController.getCard);
+router.get('/details/:id', cardController.getCard);
 
-// Upload an image for a card (returns base64) - protected endpoint
-router.post('/upload-image', combinedAuth, upload.single('image'), handleUploadErrors, cardController.uploadImage);
+// Upload an image for a card (returns base64) - requires admin authentication
+router.post('/image/upload', adminAuth, upload.single('image'), handleUploadErrors, cardController.uploadImage);
 
-// Create a new card - accepts either base64 image data or file upload - protected endpoint
-router.post('/', combinedAuth, upload.single('image'), handleUploadErrors, cardController.createCard);
+// Create a new card - accepts either base64 image data or file upload - requires admin authentication
+router.post('/create', adminAuth, upload.single('image'), handleUploadErrors, cardController.createCard);
 
-// Update a card by ID - accepts either base64 image data or file upload - protected endpoint
-router.put('/:id', combinedAuth, upload.single('image'), handleUploadErrors, cardController.updateCard);
+// Update a card by ID - accepts either base64 image data or file upload - requires admin authentication
+router.put('/update/:id', adminAuth, upload.single('image'), handleUploadErrors, cardController.updateCard);
 
-// Delete a card by ID - protected endpoint
-router.delete('/:id', combinedAuth, cardController.deleteCard);
+// Delete a card by ID - requires admin authentication
+router.delete('/remove/:id', adminAuth, cardController.deleteCard);
 
 module.exports = router; 

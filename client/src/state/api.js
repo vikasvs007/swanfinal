@@ -110,7 +110,7 @@ export const api = createApi({
     // Blog endpoints
     getBlogs: build.query({
       query: ({ status, category, featured, search, limit, page } = {}) => {
-        let url = 'blogs?';
+        let url = 'blogs/posts?';
         if (status) url += `status=${status}&`;
         if (category) url += `category=${category}&`;
         if (featured) url += `featured=${featured}&`;
@@ -122,11 +122,11 @@ export const api = createApi({
       providesTags: ["Blogs"],
     }),
     getBlog: build.query({
-      query: (id) => `blogs/${id}`,
+      query: (id) => `blogs/posts/${id}`,
       providesTags: (result, error, id) => [{ type: "Blogs", id }],
     }),
     getBlogBySlug: build.query({
-      query: (slug) => `blogs/slug/${slug}`,
+      query: (slug) => `blogs/posts/slug/${slug}`,
       providesTags: (result, error, slug) => [{ type: "Blogs", slug }],
     }),
     getBlogCategories: build.query({
@@ -143,7 +143,7 @@ export const api = createApi({
         formData.append("image", imageFile);
         console.log('Uploading image file:', imageFile.name, imageFile.type, imageFile.size);
         return {
-          url: "blogs/upload-image",
+          url: "blogs/images/upload",
           method: "POST",
           body: formData,
           formData: true,
@@ -152,7 +152,7 @@ export const api = createApi({
     }),
     createBlog: build.mutation({
       query: (data) => ({
-        url: "blogs",
+        url: "blogs/posts/create",
         method: "POST",
         body: data,
       }),
@@ -160,7 +160,7 @@ export const api = createApi({
     }),
     updateBlog: build.mutation({
       query: ({ id, ...data }) => ({
-        url: `blogs/${id}`,
+        url: `blogs/posts/update/${id}`,
         method: "PUT",
         body: data,
       }),
@@ -171,7 +171,7 @@ export const api = createApi({
     }),
     deleteBlog: build.mutation({
       query: (id) => ({
-        url: `blogs/${id}`,
+        url: `blogs/posts/remove/${id}`,
         method: "DELETE",
       }),
       invalidatesTags: ["Blogs"],
@@ -179,12 +179,16 @@ export const api = createApi({
     
     // Product endpoints
     getProducts: build.query({
-      query: () => "products",
+      query: () => "v1/data/items",
+      providesTags: ["Products"],
+    }),
+    getProductById: build.query({
+      query: (id) => `v1/data/items/${id}`,
       providesTags: ["Products"],
     }),
     createProduct: build.mutation({
       query: (data) => ({
-        url: "products",
+        url: "v1/data/items",
         method: "POST",
         body: data,
       }),
@@ -192,7 +196,7 @@ export const api = createApi({
     }),
     updateProduct: build.mutation({
       query: ({ id, ...data }) => ({
-        url: `products/${id}`,
+        url: `v1/data/items/${id}`,
         method: "PUT",
         body: data,
       }),
@@ -200,7 +204,7 @@ export const api = createApi({
     }),
     deleteProduct: build.mutation({
       query: (id) => ({
-        url: `products/${id}`,
+        url: `v1/data/items/${id}`,
         method: "DELETE",
       }),
       invalidatesTags: ["Products"],
@@ -208,12 +212,12 @@ export const api = createApi({
     
     // Order endpoints
     getOrders: build.query({
-      query: () => "orders",
+      query: () => "orders/list",
       providesTags: ["Orders"],
     }),
     createOrder: build.mutation({
       query: (data) => ({
-        url: "orders",
+        url: "orders/create",
         method: "POST",
         body: data,
       }),
@@ -221,7 +225,7 @@ export const api = createApi({
     }),
     updateOrder: build.mutation({
       query: ({ id, data }) => ({
-        url: `orders/${id}`,
+        url: `orders/update/${id}`,
         method: "PUT",
         body: data,
       }),
@@ -229,7 +233,7 @@ export const api = createApi({
     }),
     deleteOrder: build.mutation({
       query: (id) => ({
-        url: `orders/${id}`,
+        url: `orders/remove/${id}`,
         method: "DELETE",
       }),
       invalidatesTags: ["Orders"],
@@ -237,12 +241,12 @@ export const api = createApi({
     
     // Enquiry endpoints
     getEnquiries: build.query({
-      query: () => "enquiries",
+      query: () => "v1/data/inquiries",
       providesTags: ["Enquiries"],
     }),
     createEnquiry: build.mutation({
       query: (data) => ({
-        url: "enquiries",
+        url: "v1/data/inquiries",
         method: "POST",
         body: data,
       }),
@@ -250,7 +254,7 @@ export const api = createApi({
     }),
     updateEnquiry: build.mutation({
       query: ({ id, ...data }) => ({
-        url: `enquiries/${id}`,
+        url: `v1/data/inquiries/${id}`,
         method: "PUT",
         body: data,
       }),
@@ -258,7 +262,7 @@ export const api = createApi({
     }),
     deleteEnquiry: build.mutation({
       query: (id) => ({
-        url: `enquiries/${id}`,
+        url: `v1/data/inquiries/${id}`,
         method: "DELETE",
       }),
       invalidatesTags: ["Enquiries"],
@@ -266,13 +270,13 @@ export const api = createApi({
     
     // Notification endpoints
     getNotifications: build.query({
-      query: () => "notifications",
+      query: () => "notifications/list",
       providesTags: ["Notifications"],
       pollingInterval: 30000,
     }),
     createNotification: build.mutation({
       query: (data) => ({
-        url: "notifications",
+        url: "notifications/create",
         method: "POST",
         body: data,
       }),
@@ -280,8 +284,8 @@ export const api = createApi({
     }),
     updateNotification: build.mutation({
       query: ({ id, ...data }) => ({
-        url: `notifications/${id}`,
-        method: "PATCH",
+        url: `notifications/mark-read/${id}`,
+        method: "PUT",
         body: data,
       }),
       invalidatesTags: ["Notifications"],
@@ -289,7 +293,7 @@ export const api = createApi({
     
     // Active Users endpoints
     getActiveUsers: build.query({
-      query: () => "active-users",
+      query: () => "active-users/sessions/list",
       providesTags: ["ActiveUsers"],
       transformResponse: (response) => {
         // Transform the response to include only the active users array
@@ -304,13 +308,13 @@ export const api = createApi({
     
     // Visitors endpoints
     getVisitors: build.query({
-      query: () => "visitors",
+      query: () => "v1/data/visitors/list",
       providesTags: ["Visitors"],
       pollingInterval: 30000,
     }),
     createVisitor: build.mutation({
       query: (data) => ({
-        url: "visitors",
+        url: "v1/data/visitors/track",
         method: "POST",
         body: data,
       }),
@@ -318,7 +322,7 @@ export const api = createApi({
     }),
     updateVisitor: build.mutation({
       query: ({ id, ...data }) => ({
-        url: `visitors/${id}`,
+        url: `v1/data/visitors/update/${id}`,
         method: "PUT",
         body: data,
       }),
@@ -326,7 +330,7 @@ export const api = createApi({
     }),
     deleteVisitor: build.mutation({
       query: (id) => ({
-        url: `visitors/${id}`,
+        url: `v1/data/visitors/remove/${id}`,
         method: "DELETE",
       }),
       invalidatesTags: ["Visitors"],
@@ -334,33 +338,33 @@ export const api = createApi({
     
     // User Statistics endpoints
     getUserStatistics: build.query({
-      query: () => "user-statistics/overall",
+      query: () => "user-statistics/summary",
       providesTags: ["UserStatistics"],
     }),
     
     getActiveUserStats: build.query({
-      query: () => "active-users/statistics",
+      query: () => "active-users/sessions/stats",
       providesTags: ["ActiveUsers"],
     }),
     
     getVisitorStats: build.query({
-      query: () => "visitors/statistics",
+      query: () => "v1/data/visitors",
       providesTags: ["Visitors"],
     }),
     
     // Geography endpoints
     getGeography: build.query({
-      query: () => "visitors/geography",
+      query: () => "v1/data/visitors/geography",
       providesTags: ["Geography"]
     }),
     
     // Card endpoints
     getCards: build.query({
-      query: () => "cards",
+      query: () => "cards/list",
       providesTags: ["Cards"],
     }),
     getCard: build.query({
-      query: (id) => `cards/${id}`,
+      query: (id) => `cards/details/${id}`,
       providesTags: (result, error, id) => [{ type: "Cards", id }],
     }),
     uploadCardImage: build.mutation({
@@ -369,7 +373,7 @@ export const api = createApi({
         formData.append("image", imageFile);
         console.log('Uploading card image file:', imageFile.name, imageFile.type, imageFile.size);
         return {
-          url: "cards/upload-image",
+          url: "cards/images/upload",
           method: "POST",
           body: formData,
           formData: true,
@@ -378,7 +382,7 @@ export const api = createApi({
     }),
     createCard: build.mutation({
       query: (data) => ({
-        url: "cards",
+        url: "cards/create",
         method: "POST",
         body: data,
       }),
@@ -386,7 +390,7 @@ export const api = createApi({
     }),
     updateCard: build.mutation({
       query: ({ id, ...data }) => ({
-        url: `cards/${id}`,
+        url: `cards/update/${id}`,
         method: "PUT",
         body: data,
       }),
@@ -397,7 +401,7 @@ export const api = createApi({
     }),
     deleteCard: build.mutation({
       query: (id) => ({
-        url: `cards/${id}`,
+        url: `cards/remove/${id}`,
         method: "DELETE",
       }),
       invalidatesTags: ["Cards"],

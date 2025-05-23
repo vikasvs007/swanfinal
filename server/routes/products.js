@@ -4,8 +4,8 @@ const router = express.Router();
 const productController = require('../controllers/productController');
 const { combinedAuth, adminAuth } = require('../middleware/auth');
 
-// Create a new product - requires authentication
-router.post('/', combinedAuth, productController.createProduct);
+// Create a new product - requires admin authentication
+router.post('/', adminAuth, productController.createProduct);
 
 // Get all products - public endpoint
 router.get('/', productController.getProducts);
@@ -16,10 +16,10 @@ router.get('/search', productController.searchProducts);
 // Get a single product - public endpoint
 router.get('/:id', productController.getProduct);
 
-// Update a product - requires authentication
-router.put('/:id', combinedAuth, productController.updateProduct);
+// Update a product - requires admin authentication
+router.put('/:id', adminAuth, productController.updateProduct);
 
-// Delete a product - requires authentication (should be admin level)
-router.delete('/:id', combinedAuth, productController.deleteProduct);
+// Delete a product - requires admin authentication
+router.delete('/:id', adminAuth, productController.deleteProduct);
 
 module.exports = router;

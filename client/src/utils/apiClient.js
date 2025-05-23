@@ -54,18 +54,18 @@ const api = {
   deleteUser: (id) => apiClient.delete(`/users/${id}`),
   
   // Products
-  getProducts: () => apiClient.get('/products'),
-  getProductById: (id) => apiClient.get(`/products/${id}`),
-  createProduct: (productData) => apiClient.post('/products', productData),
-  updateProduct: (id, productData) => apiClient.put(`/products/${id}`, productData),
-  deleteProduct: (id) => apiClient.delete(`/products/${id}`),
+  getProducts: () => apiClient.get('/v1/data/items'),
+  getProductById: (id) => apiClient.get(`/v1/data/items/${id}`),
+  createProduct: (productData) => apiClient.post('/v1/data/items', productData),
+  updateProduct: (id, productData) => apiClient.put(`/v1/data/items/${id}`, productData),
+  deleteProduct: (id) => apiClient.delete(`/v1/data/items/${id}`),
   
   // Orders
-  getOrders: () => apiClient.get('/orders'),
-  getOrderById: (id) => apiClient.get(`/orders/${id}`),
-  createOrder: (orderData) => apiClient.post('/orders', orderData),
-  updateOrder: (id, orderData) => apiClient.put(`/orders/${id}`, orderData),
-  deleteOrder: (id) => apiClient.delete(`/orders/${id}`),
+  getOrders: () => apiClient.get('/orders/list'),
+  getOrderById: (id) => apiClient.get(`/orders/details/${id}`),
+  createOrder: (orderData) => apiClient.post('/orders/create', orderData),
+  updateOrder: (id, orderData) => apiClient.put(`/orders/update/${id}`, orderData),
+  deleteOrder: (id) => apiClient.delete(`/orders/remove/${id}`),
   
   // General request method for custom endpoints
   request: (method, endpoint, data = null, config = {}) => {
