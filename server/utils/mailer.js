@@ -4,8 +4,8 @@ const nodemailer = require('nodemailer');
 const transporter = nodemailer.createTransport({
   service: 'gmail', // You can use other services like 'outlook', 'yahoo', etc.
   auth: {
-    user: process.env.EMAIL_USER || 'your-email@gmail.com', // Your email address
-    pass: process.env.EMAIL_PASSWORD || 'your-password' // Your email password or app password
+    user: process.env.EMAIL_USER || 'clickngro@gmail.com', // Your email address
+    pass: process.env.EMAIL_PASSWORD || 'lnxs tbwn inao anac' // Your email password or app password
   }
 });
 
@@ -17,11 +17,11 @@ const transporter = nodemailer.createTransport({
 const sendEnquiryNotification = async (enquiry) => {
   try {
     // The email recipient (your email)
-    const to = process.env.NOTIFICATION_EMAIL || 'your-email@gmail.com';
+    const to = process.env.NOTIFICATION_EMAIL || 'clickngro@gmail.com';
     
     // Create the email content
     const mailOptions = {
-      from: process.env.EMAIL_USER || 'your-email@gmail.com',
+      from: process.env.EMAIL_USER || 'clickngro@gmail.com',
       to: to,
       subject: `New Enquiry: ${enquiry.subject}`,
       html: `

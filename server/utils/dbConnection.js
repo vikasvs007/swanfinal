@@ -24,7 +24,7 @@ async function connectToDatabase() {
         // Note: MongoDB Atlas handles SSL by default, no need for additional SSL options
       }
       
-      await mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/crud_db', connectionOptions);
+      await mongoose.connect(process.env.MONGODB_URI || 'mongodb+srv://vikas:vikasvs123@swan.d3ygkoq.mongodb.net/?retryWrites=true&w=majority&appName=Swan&ssl=true', connectionOptions);
       
       console.log('Connected to MongoDB successfully');
       
