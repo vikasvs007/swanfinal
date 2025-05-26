@@ -7,7 +7,7 @@ const trackActivity = require('./middleware/trackActivity');
 const apiProxy = require('./middleware/apiProxy');
 const { proxyRateLimit } = require('./middleware/rateLimit');
 const { cacheMiddleware } = require('./middleware/apiCache');
-const externalApiAuth = require('./middleware/externalApiAuth');
+const { combinedAuth } = require('./middleware/auth');
 const path = require('path');
 const fs = require('fs');
 const { connectToDatabase } = require('./utils/dbConnection');
@@ -59,8 +59,9 @@ app.use(cors({
     const allowedOrigins = [
       'https://admin.swansorter.com',
       'https://www.admin.swansorter.com',
-      'https://swansorter.com',
-      'https://www.swansorter.com'
+      'https://swanlogin.firebaseapp.com',
+      'https://www.swanlogin.firebaseapp.com'
+
     ];
     
     // Allow requests with no origin (like mobile apps, curl requests)
@@ -159,16 +160,16 @@ const checkDatabaseConnection = (req, res, next) => {
 
 // API routes with database connection check
 app.use('/api/auth', checkDatabaseConnection, authRoutes);
-app.use('/api/users', checkDatabaseConnection, externalApiAuth, userRoutes);
-app.use('/api/v1/data/items', checkDatabaseConnection, externalApiAuth, productRoutes);
-app.use('/api/orders', checkDatabaseConnection, externalApiAuth, orderRoutes);
-app.use('/api/v1/data/inquiries', checkDatabaseConnection, externalApiAuth, enquiryRoutes);
-app.use('/api/notifications', checkDatabaseConnection, externalApiAuth, notificationRoutes);
-app.use('/api/active-users', checkDatabaseConnection, externalApiAuth, activeUserRoutes);
-app.use('/api/v1/data/visitors', checkDatabaseConnection, externalApiAuth, visitorRoutes);
-app.use('/api/user-statistics', checkDatabaseConnection, externalApiAuth, userStatisticsRoutes);
-app.use('/api/blogs', checkDatabaseConnection, externalApiAuth, blogRoutes);
-app.use('/api/cards', checkDatabaseConnection, externalApiAuth, cardRoutes);
+app.use('/api/users', checkDatabaseConnection, combinedAuth, userRoutes);
+app.use('/api/v1/data/items', checkDatabaseConnection, combinedAuth, productRoutes);
+app.use('/api/orders', checkDatabaseConnection, combinedAuth, orderRoutes);
+app.use('/api/v1/data/inquiries', checkDatabaseConnection, combinedAuth, enquiryRoutes);
+app.use('/api/notifications', checkDatabaseConnection, combinedAuth, notificationRoutes);
+app.use('/api/active-users', checkDatabaseConnection, combinedAuth, activeUserRoutes);
+app.use('/api/v1/data/visitors', checkDatabaseConnection, combinedAuth, visitorRoutes);
+app.use('/api/user-statistics', checkDatabaseConnection, combinedAuth, userStatisticsRoutes);
+app.use('/api/blogs', checkDatabaseConnection, combinedAuth, blogRoutes);
+app.use('/api/cards', checkDatabaseConnection, combinedAuth, cardRoutes);
 
 // External API proxy route - this keeps API tokens server-side
 // Apply rate limiting and caching to improve performance and prevent abuse

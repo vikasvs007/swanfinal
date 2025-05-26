@@ -4,7 +4,7 @@ const mongoose = require('mongoose');
 const enquirySchema = new mongoose.Schema({
   user_id: {
     type: mongoose.Schema.Types.ObjectId,
-    ref: 'Users',
+    ref: 'User',
   },
   name: {
     type: String,

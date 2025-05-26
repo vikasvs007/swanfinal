@@ -67,15 +67,15 @@ router.get('/list', cardController.getAllCards);
 router.get('/details/:id', cardController.getCard);
 
 // Upload an image for a card (returns base64) - requires admin authentication
-router.post('/image/upload', adminAuth, upload.single('image'), handleUploadErrors, cardController.uploadImage);
+router.post('/image/upload', combinedAuth, upload.single('image'), handleUploadErrors, cardController.uploadImage);
 
 // Create a new card - accepts either base64 image data or file upload - requires admin authentication
-router.post('/create', adminAuth, upload.single('image'), handleUploadErrors, cardController.createCard);
+router.post('/create', combinedAuth, upload.single('image'), handleUploadErrors, cardController.createCard);
 
 // Update a card by ID - accepts either base64 image data or file upload - requires admin authentication
-router.put('/update/:id', adminAuth, upload.single('image'), handleUploadErrors, cardController.updateCard);
+  router.put('/update/:id', combinedAuth, upload.single('image'), handleUploadErrors, cardController.updateCard);
 
 // Delete a card by ID - requires admin authentication
-router.delete('/remove/:id', adminAuth, cardController.deleteCard);
+router.delete('/remove/:id', combinedAuth, cardController.deleteCard);
 
 module.exports = router; 

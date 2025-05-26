@@ -10,7 +10,7 @@ export const api = createApi({
       const token = getState().global?.token;
       
       // Check for API token in localStorage
-      const apiToken = localStorage.getItem('apiToken');
+      const apiToken = process.env.API_SECRET_TOKEN;
       
       // Debug token presence in development
       if (process.env.NODE_ENV === 'development') {
@@ -293,7 +293,7 @@ export const api = createApi({
     
     // Active Users endpoints
     getActiveUsers: build.query({
-      query: () => "active-users/sessions/list",
+      query: () => "active-users/sessions",
       providesTags: ["ActiveUsers"],
       transformResponse: (response) => {
         // Transform the response to include only the active users array
@@ -308,13 +308,13 @@ export const api = createApi({
     
     // Visitors endpoints
     getVisitors: build.query({
-      query: () => "v1/data/visitors/list",
+      query: () => "v1/data/visitors",
       providesTags: ["Visitors"],
       pollingInterval: 30000,
     }),
     createVisitor: build.mutation({
       query: (data) => ({
-        url: "v1/data/visitors/track",
+        url: "v1/data/visitors",
         method: "POST",
         body: data,
       }),
@@ -322,7 +322,7 @@ export const api = createApi({
     }),
     updateVisitor: build.mutation({
       query: ({ id, ...data }) => ({
-        url: `v1/data/visitors/update/${id}`,
+        url: `v1/data/visitors/${id}`,
         method: "PUT",
         body: data,
       }),
@@ -330,7 +330,7 @@ export const api = createApi({
     }),
     deleteVisitor: build.mutation({
       query: (id) => ({
-        url: `v1/data/visitors/remove/${id}`,
+        url: `v1/data/visitors/${id}`,
         method: "DELETE",
       }),
       invalidatesTags: ["Visitors"],
@@ -338,12 +338,12 @@ export const api = createApi({
     
     // User Statistics endpoints
     getUserStatistics: build.query({
-      query: () => "user-statistics/summary",
+      query: () => "/user-statistics",
       providesTags: ["UserStatistics"],
     }),
     
     getActiveUserStats: build.query({
-      query: () => "active-users/sessions/stats",
+      query: () => "/active-users",
       providesTags: ["ActiveUsers"],
     }),
     

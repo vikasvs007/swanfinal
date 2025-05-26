@@ -7,7 +7,7 @@ const visitorController = {
   // Get all visitors
   async getVisitors(req, res) {
     try {
-      const { page = 1, limit = 10 } = req.query;
+      const { page = 1, limit = 20 } = req.query;
       const query = { is_deleted: false };
 
       const visitors = await Visitor.find(query)
