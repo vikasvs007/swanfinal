@@ -8,9 +8,15 @@ import axios from 'axios';
 
 // Create the API client instance with credentials mode to allow cookies
 const apiClient = axios.create({
-  baseURL: '/proxy/api',
+  baseURL: process.env.NODE_ENV === 'production' 
+    ? process.env.REACT_APP_BASE_URL 
+    : '/proxy/api',
   headers: {
     'Content-Type': 'application/json',
+    // Add API token for production environment
+    ...(process.env.NODE_ENV === 'production' && {
+      'Authorization': `Bearer ${process.env.REACT_APP_API_SECRET_TOKEN || 'swanapi_sec_token_6363163519'}`
+    })
   },
   // This is crucial for cookies to be sent with requests
   withCredentials: true
