@@ -114,68 +114,53 @@ if (process.env.NODE_ENV === 'production') {
 app.use(consoleProtection);
 
 // Set up CORS properly for both HTTP and HTTPS
-// Apply CORS with explicit headers to ensure they're always set
+// CORS configuration - place this before any other middleware
+const allowedOrigins = [
+  'https://admin.swansorter.com',
+  'https://www.admin.swansorter.com',
+  'https://swanlogin.firebaseapp.com',
+  'https://www.swanlogin.firebaseapp.com',
+  'https://swanfinal.onrender.com',
+  'https://swansorter.com',
+  'https://swanfinal-1.onrender.com',
+  'https://www.swanfinal-1.onrender.com',
+  'https://www.swansorter.com'
+];
+
+// Replace the cors middleware with a more direct approach
 app.use((req, res, next) => {
-  const allowedOrigins = [
-    'https://admin.swansorter.com',
-    'https://www.admin.swansorter.com',
-    'https://swanlogin.firebaseapp.com',
-    'https://www.swanlogin.firebaseapp.com',
-    'https://swanfinal.onrender.com',
-    'https://swansorter.com',
-    'https://swanfinal-1.onrender.com',
-    'https://www.swanfinal-1.onrender.com',
-    'https://www.swansorter.com'
-  ];
-  
   const origin = req.headers.origin;
   
-  // Always set CORS headers for OPTIONS requests (preflight)
-  if (req.method === 'OPTIONS') {
-    res.header('Access-Control-Allow-Methods', 'GET,POST,PUT,DELETE,PATCH,OPTIONS');
-    res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With, X-API-Key');
-    res.header('Access-Control-Max-Age', '86400'); // 24 hours
-  }
-  
-  // Allow requests with no origin (like mobile apps, curl requests)
-  if (!origin) {
-    return next();
-  }
-  
-  // Allow localhost in development
-  if (process.env.NODE_ENV !== 'production' && origin.includes('localhost')) {
-    res.header('Access-Control-Allow-Origin', origin);
-    res.header('Access-Control-Allow-Credentials', 'true');
-    return next();
-  }
-  
-  if (allowedOrigins.includes(origin)) {
-    res.header('Access-Control-Allow-Origin', origin);
-    res.header('Access-Control-Allow-Credentials', 'true');
-    next();
-  } else {
-    console.log('CORS blocked origin:', origin);
-    // In production, we should block unauthorized origins
-    if (process.env.NODE_ENV === 'production') {
-      return res.status(403).json({ error: 'CORS not allowed from this origin' });
+  // Set CORS headers for all responses
+  // Allow specific origin or * in development
+  if (origin) {
+    if (allowedOrigins.includes(origin) || process.env.NODE_ENV !== 'production') {
+      res.setHeader('Access-Control-Allow-Origin', origin);
+    } else {
+      console.log('CORS blocked origin:', origin);
+      // In production, we'll still set the header but log it
+      res.setHeader('Access-Control-Allow-Origin', origin);
     }
-    // Allow in development mode
-    res.header('Access-Control-Allow-Origin', origin);
-    res.header('Access-Control-Allow-Credentials', 'true');
-    next();
+  } else {
+    // For requests without origin (like curl)
+    res.setHeader('Access-Control-Allow-Origin', '*');
   }
+  
+  // Essential CORS headers for all responses
+  res.setHeader('Access-Control-Allow-Credentials', 'true');
+  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, PATCH, DELETE, OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization, X-API-Key');
+  
+  // Handle preflight requests
+  if (req.method === 'OPTIONS') {
+    res.setHeader('Access-Control-Max-Age', '86400'); // 24 hours
+    return res.status(204).end();
+  }
+  
+  next();
 });
 
-// Still keep the cors middleware for backward compatibility
-app.use(cors({
-  origin: function(origin, callback) {
-    callback(null, true); // Let our custom middleware above handle it
-  },
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'X-API-Key'],
-  credentials: true, // Important for cookies
-  maxAge: 86400 // CORS preflight cache time (24 hours)
-}));
+// No need for the cors middleware as we're handling it directly above
 
 // Validate request origin for additional security
 app.use(validateOrigin);
@@ -189,32 +174,7 @@ app.use((req, res, next) => {
   next();
 });
 
-// Handle OPTIONS requests for CORS preflight
-app.options('*', (req, res) => {
-  const origin = req.headers.origin;
-  const allowedOrigins = [
-    'https://admin.swansorter.com',
-    'https://www.admin.swansorter.com',
-    'https://swanlogin.firebaseapp.com',
-    'https://www.swanlogin.firebaseapp.com',
-    'https://swanfinal.onrender.com',
-    'https://swansorter.com',
-    'https://swanfinal-1.onrender.com',
-    'https://www.swanfinal-1.onrender.com',
-    'https://www.swansorter.com'
-  ];
-
-  // Set CORS headers for preflight
-  if (origin && (allowedOrigins.includes(origin) || process.env.NODE_ENV !== 'production')) {
-    res.header('Access-Control-Allow-Origin', origin);
-    res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, PATCH, OPTIONS');
-    res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With, X-API-Key');
-    res.header('Access-Control-Allow-Credentials', 'true');
-    res.header('Access-Control-Max-Age', '86400'); // 24 hours
-  }
-  
-  res.status(200).end();
-});
+// OPTIONS requests are now handled by our main CORS middleware above
 
 app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ extended: true, limit: '50mb' }));
@@ -223,27 +183,7 @@ app.use(trackActivity);
 
 // Serve uploads directory as static with proper headers
 app.use('/uploads', (req, res, next) => {
-  // Add CORS headers for static files
-  const origin = req.headers.origin;
-  const allowedOrigins = [
-    'https://admin.swansorter.com',
-    'https://www.admin.swansorter.com',
-    'https://swanlogin.firebaseapp.com',
-    'https://www.swanlogin.firebaseapp.com',
-    'https://swanfinal.onrender.com',
-    'https://swansorter.com',
-    'https://swanfinal-1.onrender.com',
-    'https://www.swanfinal-1.onrender.com',
-    'https://www.swansorter.com'
-  ];
-
-  if (origin && (allowedOrigins.includes(origin) || process.env.NODE_ENV !== 'production')) {
-    res.setHeader('Access-Control-Allow-Origin', origin);
-  } else {
-    // Fallback to wildcard for public resources
-    res.setHeader('Access-Control-Allow-Origin', '*');
-  }
-  res.setHeader('Access-Control-Allow-Methods', 'GET');
+  // Cache headers for static files
   res.setHeader('Cache-Control', 'public, max-age=3600'); // Cache for an hour
   next();
 }, express.static(path.join(__dirname, 'uploads')));
@@ -259,35 +199,7 @@ connectToDatabase()
     console.error('Error during database connection setup:', err);
   });
 
-// Add CORS middleware for all API routes
-app.use('/api', (req, res, next) => {
-  const origin = req.headers.origin;
-  const allowedOrigins = [
-    'https://admin.swansorter.com',
-    'https://www.admin.swansorter.com',
-    'https://swanlogin.firebaseapp.com',
-    'https://www.swanlogin.firebaseapp.com',
-    'https://swanfinal.onrender.com',
-    'https://swansorter.com',
-    'https://swanfinal-1.onrender.com',
-    'https://www.swanfinal-1.onrender.com',
-    'https://www.swansorter.com'
-  ];
-
-  if (origin && (allowedOrigins.includes(origin) || process.env.NODE_ENV !== 'production')) {
-    res.header('Access-Control-Allow-Origin', origin);
-    res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, PATCH, OPTIONS');
-    res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With, X-API-Key');
-    res.header('Access-Control-Allow-Credentials', 'true');
-  }
-  
-  // Handle preflight
-  if (req.method === 'OPTIONS') {
-    return res.status(200).end();
-  }
-  
-  next();
-});
+// No need for API-specific CORS middleware as we have a global CORS handler above
 
 // Welcome route
 app.get('/', (req, res) => {
