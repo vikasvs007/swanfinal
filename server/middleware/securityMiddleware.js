@@ -185,6 +185,8 @@ const validateOrigin = (req, res, next) => {
     'https://www.swansorter.com',
     'https://swanfinal.onrender.com',
     'https://www.swanfinal.onrender.com',
+    "https://swanfinal-1.onrender.com",
+    "https://www.swanfinal-1.onrender.com",
     'http://localhost:3000'
   ];
   

@@ -123,6 +123,8 @@ app.use(cors({
       'https://www.swanlogin.firebaseapp.com',
       'https://swanfinal.onrender.com',
       'https://swansorter.com',
+      'https://swanfinal-1.onrender.com',
+      'https://www.swanfinal-1.onrender.com',
       'https://www.swansorter.com'
     ];
     
