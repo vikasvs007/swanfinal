@@ -9,6 +9,7 @@ const apiProxy = require('./middleware/apiProxy');
 const { proxyRateLimit } = require('./middleware/rateLimit');
 const { cacheMiddleware } = require('./middleware/apiCache');
 const { combinedAuth } = require('./middleware/auth');
+const consoleProtection = require('./middleware/consoleProtection');
 const { 
   globalRateLimit,
   securityHeaders,
@@ -85,6 +86,9 @@ app.use(globalRateLimit);
 
 // Apply enhanced security headers
 app.use(securityHeaders);
+
+// Apply console protection to prevent unauthorized browser console access
+app.use(consoleProtection);
 
 // Set up CORS properly for both HTTP and HTTPS
 app.use(cors({

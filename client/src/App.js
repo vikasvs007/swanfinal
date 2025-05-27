@@ -10,6 +10,7 @@ import { initializeSecureStorage } from './utils/cleanStorage';
 import { isAuthenticated, getCurrentUser } from './utils/auth';
 import ApiTokenInitializer from './components/ApiTokenInitializer';
 import { setApiToken } from './utils/authUtils';
+import { initConsoleProtection, detectDevTools } from './utils/consoleProtection';
 
 import Layout from "scenes/layout";
 import Dashboard from "scenes/dashboard";
@@ -55,6 +56,18 @@ function App() {
   useEffect(() => {
     // Initialize secure storage and clean up any insecure tokens
     initializeSecureStorage();
+    
+    // Initialize console protection to prevent tampering
+    initConsoleProtection();
+    
+    // Detect if DevTools are open and take action if needed
+    detectDevTools((isOpen) => {
+      if (isOpen && process.env.NODE_ENV === 'production') {
+        console.warn('DevTools detected - security measures activated');
+        // In production, you might want to log the user out or redirect
+        // if (isLoggedIn) dispatch(logout());
+      }
+    });
 
     // Check authentication status securely
     const checkAuthStatus = async () => {
