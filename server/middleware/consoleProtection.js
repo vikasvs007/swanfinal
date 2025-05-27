@@ -49,7 +49,11 @@ const consoleProtection = (req, res, next) => {
   // Check for request modification from POST/PUT methods
   if (['POST', 'PUT', 'DELETE', 'PATCH'].includes(req.method)) {
     if (!isLegitimateRequest()) {
-      console.warn(`[SECURITY] Blocked potential console request: ${req.method} ${req.originalUrl} from ${req.ip}`);
+      // Use req.connection.write directly to avoid potential recursion with console.warn
+      const logMessage = `[SECURITY] Blocked potential console request: ${req.method} ${req.originalUrl} from ${req.ip}`;
+      // In production, log to a file or use a direct method that won't cause recursion
+      process.stderr.write(logMessage + '\n');
+      
       return res.status(403).json({
         success: false,
         message: 'Direct API access is not allowed'

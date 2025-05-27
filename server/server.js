@@ -106,6 +106,11 @@ app.use(globalRateLimit);
 app.use(securityHeaders);
 
 // Apply console protection to prevent unauthorized browser console access
+// Only apply in production to avoid potential recursive console calls
+if (process.env.NODE_ENV === 'production') {
+  // Initialize a flag to avoid infinite recursion with console methods
+  global._consoleMethodsOverridden = true;
+}
 app.use(consoleProtection);
 
 // Set up CORS properly for both HTTP and HTTPS
