@@ -50,27 +50,45 @@ const sensitiveOperationsLimit = rateLimit({
 
 // Enhanced security headers middleware
 const securityHeaders = (req, res, next) => {
-  // Set strict Content-Security-Policy in production
-  if (process.env.NODE_ENV === 'production') {
-    res.setHeader('Content-Security-Policy', "default-src 'self'; script-src 'self'; object-src 'none'; upgrade-insecure-requests;");
+  try {
+    // Set strict Content-Security-Policy in production
+    if (process.env.NODE_ENV === 'production') {
+      // More comprehensive CSP policy for production
+      res.setHeader('Content-Security-Policy', "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'; object-src 'none'; connect-src 'self' https://swanfinal.onrender.com; frame-ancestors 'none'; upgrade-insecure-requests;");
+      
+      // Add Strict-Transport-Security header for HTTPS
+      res.setHeader('Strict-Transport-Security', 'max-age=31536000; includeSubDomains; preload');
+    }
+    
+    // Prevent clickjacking
+    res.setHeader('X-Frame-Options', 'DENY');
+    
+    // Prevent MIME type sniffing
+    res.setHeader('X-Content-Type-Options', 'nosniff');
+    
+    // Enable XSS protection
+    res.setHeader('X-XSS-Protection', '1; mode=block');
+    
+    // Set referrer policy
+    res.setHeader('Referrer-Policy', 'strict-origin-when-cross-origin');
+    
+    // Add Cache-Control headers for non-static content
+    if (!req.path.startsWith('/uploads/')) {
+      res.setHeader('Cache-Control', 'no-store, max-age=0');
+    }
+    
+    // Add request ID for tracking
+    const requestId = crypto.randomBytes(16).toString('hex');
+    req.requestId = requestId;
+    res.setHeader('X-Request-ID', requestId);
+  } catch (error) {
+    // Use a safer logging approach to avoid potential recursion
+    if (process.env.NODE_ENV === 'production') {
+      process.stderr.write(`[ERROR] Error setting security headers: ${error.message}\n`);
+    } else {
+      console.error('Error setting security headers:', error);
+    }
   }
-  
-  // Prevent clickjacking
-  res.setHeader('X-Frame-Options', 'DENY');
-  
-  // Prevent MIME type sniffing
-  res.setHeader('X-Content-Type-Options', 'nosniff');
-  
-  // Enable XSS protection
-  res.setHeader('X-XSS-Protection', '1; mode=block');
-  
-  // Set referrer policy
-  res.setHeader('Referrer-Policy', 'strict-origin-when-cross-origin');
-  
-  // Add request ID for tracking
-  const requestId = crypto.randomBytes(16).toString('hex');
-  req.requestId = requestId;
-  res.setHeader('X-Request-ID', requestId);
   
   next();
 };
@@ -136,8 +154,12 @@ const validateApiKey = (req, res, next) => {
   }
   
   if (apiKey !== process.env.API_SECRET_TOKEN) {
-    // Log unauthorized access attempt for security monitoring
-    console.warn(`[SECURITY] Invalid API key attempt: ${req.ip}`);
+    // Log unauthorized access attempt for security monitoring - use safe logging in production
+    if (process.env.NODE_ENV === 'production') {
+      process.stderr.write(`[SECURITY] Invalid API key attempt: ${req.ip}\n`);
+    } else {
+      console.warn(`[SECURITY] Invalid API key attempt: ${req.ip}`);
+    }
     
     return res.status(401).json({
       success: false,
@@ -157,6 +179,12 @@ const validateOrigin = (req, res, next) => {
     'https://admin.swansorter.com',
     'https://www.admin.swansorter.com',
     'https://swanlogin.firebaseapp.com',
+    'https://www.swanlogin.firebaseapp.com',
+    'https://swanfinal.onrender.com',
+    'https://swansorter.com',
+    'https://www.swansorter.com',
+    'https://swanfinal.onrender.com',
+    'https://www.swanfinal.onrender.com',
     'http://localhost:3000'
   ];
   

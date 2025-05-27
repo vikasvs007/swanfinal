@@ -57,11 +57,17 @@ export const initConsoleProtection = () => {
     // Keep these methods but show warnings
     ['log', 'warn', 'error'].forEach(method => {
       const originalMethod = window.console[method];
-      window.console[method] = function() {
+      window.console[method] = function(...args) {
+        // Prevent infinite recursion by checking message content
+        if (args[0] === 'Console protection activated for production environment' ||
+            args[0] === 'Console commands are disabled in production for security reasons.') {
+          return originalMethod.apply(console, args);
+        }
+        
         consoleWarning();
         // Still allow error logging for critical issues
         if (method === 'error') {
-          originalMethod.apply(console, arguments);
+          originalMethod.apply(console, args);
         }
       };
     });
@@ -86,7 +92,11 @@ export const initConsoleProtection = () => {
     return false;
   });
   
-  console.warn('Console protection activated for production environment');
+  // Set a flag to prevent recursion issues
+  if (!window._consoleWarningShown) {
+    window._consoleWarningShown = true;
+    console.warn('Console protection activated for production environment');
+  }
 };
 
 // Use this function to detect if DevTools are open

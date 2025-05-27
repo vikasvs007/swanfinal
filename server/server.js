@@ -120,7 +120,10 @@ app.use(cors({
       'https://admin.swansorter.com',
       'https://www.admin.swansorter.com',
       'https://swanlogin.firebaseapp.com',
-      'https://www.swanlogin.firebaseapp.com'
+      'https://www.swanlogin.firebaseapp.com',
+      'https://swanfinal.onrender.com',
+      'https://swansorter.com',
+      'https://www.swansorter.com'
     ];
     
     // Allow requests with no origin (like mobile apps, curl requests)
@@ -269,11 +272,18 @@ app.use('/proxy/api/:path(*)', proxyRateLimit, cacheMiddleware, apiProxy);
 
 // Error handling
 app.use((err, req, res, next) => {
-  console.error(err.stack);
+  // In production, use a safer logging approach to avoid recursion
+  if (process.env.NODE_ENV === 'production') {
+    // Use a direct logging method instead of console
+    process.stderr.write(`[ERROR] ${new Date().toISOString()} - ${err.stack || err.message}\n`);
+  } else {
+    console.error(err.stack);
+  }
   
   // Handle database connection errors
   if (err.name === 'MongooseError' || err.name === 'MongoError') {
     return res.status(503).json({
+      success: false,
       message: 'Database connection issue. Please try again later.',
       error: process.env.NODE_ENV === 'development' ? err.message : 'Database error'
     });
@@ -282,16 +292,41 @@ app.use((err, req, res, next) => {
   // Handle timeout errors
   if (err.name === 'TimeoutError') {
     return res.status(504).json({
+      success: false,
       message: 'Request timed out. Please try again later.',
       error: process.env.NODE_ENV === 'development' ? err.message : 'Timeout error'
     });
   }
   
+  // Handle validation errors
+  if (err.name === 'ValidationError') {
+    return res.status(400).json({
+      success: false,
+      message: 'Validation error',
+      error: process.env.NODE_ENV === 'development' ? err.message : 'Invalid data provided'
+    });
+  }
+  
   // General error
   res.status(500).json({
+    success: false,
     message: 'Something went wrong!',
     error: process.env.NODE_ENV === 'development' ? err.message : undefined
   });
+});
+
+// Handle unhandled promise rejections
+process.on('unhandledRejection', (reason, promise) => {
+  if (process.env.NODE_ENV === 'production') {
+    process.stderr.write(`[FATAL] Unhandled Promise Rejection: ${reason}\n`);
+  } else {
+    console.error('Unhandled Promise Rejection:', reason);
+  }
+  // In production, we don't want to crash the server
+  // But in development, it might be good to see the error
+  if (process.env.NODE_ENV !== 'production') {
+    // Optional: process.exit(1);
+  }
 });
 
 // Start server
