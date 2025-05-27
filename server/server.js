@@ -191,6 +191,28 @@ app.use((req, res, next) => {
 
 // Handle OPTIONS requests for CORS preflight
 app.options('*', (req, res) => {
+  const origin = req.headers.origin;
+  const allowedOrigins = [
+    'https://admin.swansorter.com',
+    'https://www.admin.swansorter.com',
+    'https://swanlogin.firebaseapp.com',
+    'https://www.swanlogin.firebaseapp.com',
+    'https://swanfinal.onrender.com',
+    'https://swansorter.com',
+    'https://swanfinal-1.onrender.com',
+    'https://www.swanfinal-1.onrender.com',
+    'https://www.swansorter.com'
+  ];
+
+  // Set CORS headers for preflight
+  if (origin && (allowedOrigins.includes(origin) || process.env.NODE_ENV !== 'production')) {
+    res.header('Access-Control-Allow-Origin', origin);
+    res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, PATCH, OPTIONS');
+    res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With, X-API-Key');
+    res.header('Access-Control-Allow-Credentials', 'true');
+    res.header('Access-Control-Max-Age', '86400'); // 24 hours
+  }
+  
   res.status(200).end();
 });
 
@@ -202,7 +224,25 @@ app.use(trackActivity);
 // Serve uploads directory as static with proper headers
 app.use('/uploads', (req, res, next) => {
   // Add CORS headers for static files
-  res.setHeader('Access-Control-Allow-Origin', '*');
+  const origin = req.headers.origin;
+  const allowedOrigins = [
+    'https://admin.swansorter.com',
+    'https://www.admin.swansorter.com',
+    'https://swanlogin.firebaseapp.com',
+    'https://www.swanlogin.firebaseapp.com',
+    'https://swanfinal.onrender.com',
+    'https://swansorter.com',
+    'https://swanfinal-1.onrender.com',
+    'https://www.swanfinal-1.onrender.com',
+    'https://www.swansorter.com'
+  ];
+
+  if (origin && (allowedOrigins.includes(origin) || process.env.NODE_ENV !== 'production')) {
+    res.setHeader('Access-Control-Allow-Origin', origin);
+  } else {
+    // Fallback to wildcard for public resources
+    res.setHeader('Access-Control-Allow-Origin', '*');
+  }
   res.setHeader('Access-Control-Allow-Methods', 'GET');
   res.setHeader('Cache-Control', 'public, max-age=3600'); // Cache for an hour
   next();
@@ -218,6 +258,36 @@ connectToDatabase()
   .catch(err => {
     console.error('Error during database connection setup:', err);
   });
+
+// Add CORS middleware for all API routes
+app.use('/api', (req, res, next) => {
+  const origin = req.headers.origin;
+  const allowedOrigins = [
+    'https://admin.swansorter.com',
+    'https://www.admin.swansorter.com',
+    'https://swanlogin.firebaseapp.com',
+    'https://www.swanlogin.firebaseapp.com',
+    'https://swanfinal.onrender.com',
+    'https://swansorter.com',
+    'https://swanfinal-1.onrender.com',
+    'https://www.swanfinal-1.onrender.com',
+    'https://www.swansorter.com'
+  ];
+
+  if (origin && (allowedOrigins.includes(origin) || process.env.NODE_ENV !== 'production')) {
+    res.header('Access-Control-Allow-Origin', origin);
+    res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, PATCH, OPTIONS');
+    res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With, X-API-Key');
+    res.header('Access-Control-Allow-Credentials', 'true');
+  }
+  
+  // Handle preflight
+  if (req.method === 'OPTIONS') {
+    return res.status(200).end();
+  }
+  
+  next();
+});
 
 // Welcome route
 app.get('/', (req, res) => {
