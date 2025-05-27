@@ -84,23 +84,69 @@ app.use((req, res, next) => {
   // Get the origin of the request
   const origin = req.headers.origin;
   
-  // Always allow the frontend domain
-  if (origin === 'https://swanfinal-1.onrender.com') {
-    res.setHeader('Access-Control-Allow-Origin', origin);
+  // Log the origin and method for debugging in production
+  if (process.env.NODE_ENV === 'production') {
+    console.log(`[CORS] Request method: ${req.method}, origin: ${origin}`);
   }
   
-  // Set other CORS headers
+  // List of allowed frontend domains
+  const allowedOrigins = [
+    'https://swanfinal-1.onrender.com',
+    'https://www.swanfinal-1.onrender.com',
+    'https://swanfinal.onrender.com',
+    'https://www.swanfinal.onrender.com',
+    'http://localhost:3000'
+  ];
+  
+  // In production, be more permissive to ensure functionality
+  if (process.env.NODE_ENV === 'production') {
+    // For production, use a more permissive approach to ensure functionality
+    if (origin) {
+      res.setHeader('Access-Control-Allow-Origin', origin);
+    } else {
+      // If no origin is provided, use * (this helps with some client configurations)
+      res.setHeader('Access-Control-Allow-Origin', '*');
+      console.log('[CORS] No origin in production request - using wildcard');
+    }
+  } else {
+    // In development, use standard approach
+    if (origin && allowedOrigins.includes(origin)) {
+      res.setHeader('Access-Control-Allow-Origin', origin);
+    } else {
+      res.setHeader('Access-Control-Allow-Origin', '*');
+    }
+  }
+  
+  // Set other CORS headers - be explicit about allowed methods and headers
   res.setHeader('Access-Control-Allow-Credentials', 'true');
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, PATCH, DELETE, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization, X-API-Key');
   
-  // Handle preflight requests
+  // Special handling for OPTIONS requests (preflight)
   if (req.method === 'OPTIONS') {
+    // This is critical for preflight requests before PUT/DELETE/etc.
     res.setHeader('Access-Control-Max-Age', '86400'); // 24 hours
-    return res.status(204).end();
+    // Return 200 instead of 204 to be more compatible with all clients
+    return res.status(200).end();
   }
   
   next();
+});
+
+// Add a special route handler for OPTIONS requests to ensure they always succeed
+// This is a fallback in case the middleware above doesn't catch all OPTIONS requests
+app.options('*', (req, res) => {
+  const origin = req.headers.origin;
+  if (origin) {
+    res.setHeader('Access-Control-Allow-Origin', origin);
+  } else {
+    res.setHeader('Access-Control-Allow-Origin', '*');
+  }
+  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, PATCH, DELETE, OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization, X-API-Key');
+  res.setHeader('Access-Control-Allow-Credentials', 'true');
+  res.setHeader('Access-Control-Max-Age', '86400');
+  res.status(200).end();
 });
 
 // Disable the built-in express.js CORS middleware as we're handling it manually
