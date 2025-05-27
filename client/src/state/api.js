@@ -5,6 +5,7 @@ export const api = createApi({
     baseUrl: process.env.REACT_APP_BASE_URL,
     credentials: 'include', // Important for CORS with cookies
     mode: 'cors', // Explicitly set CORS mode
+    cache: 'no-cache', // Prevent caching issues
     prepareHeaders: (headers, { getState }) => {
       // Get token from Redux state
       const token = getState().global?.token;
@@ -24,6 +25,9 @@ export const api = createApi({
       // Add standard headers for CORS
       headers.set('Content-Type', 'application/json');
       headers.set('Accept', 'application/json');
+      
+      // Add explicit CORS headers
+      headers.set('Access-Control-Request-Method', '*');
       
       // Always use the API token for simplicity during debugging
       if (apiToken) {
