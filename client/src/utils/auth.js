@@ -14,7 +14,7 @@ import api from './apiClient';
 export const login = async (credentials) => {
   try {
     // Send credentials to server for authentication
-    const response = await api.request('post', '/auth/login', credentials);
+    const response = await api.request('post', '/api/v1/auth/login', credentials);
     
     // Server will set HttpOnly cookies, so we just need to track login state
     // in memory (or using a client-side only flag with no sensitive data)
@@ -34,7 +34,7 @@ export const login = async (credentials) => {
 export const logout = async () => {
   try {
     // Call server logout endpoint to clear the cookie
-    const response = await api.request('post', '/auth/logout');
+    const response = await api.request('post', '/api/v1/auth/logout');
     
     // Clear client-side login indicator
     sessionStorage.removeItem('isLoggedIn');
@@ -69,7 +69,7 @@ export const isAuthenticated = () => {
 export const getCurrentUser = async () => {
   try {
     // The server will use the HttpOnly cookie to authenticate this request
-    const response = await api.request('get', '/auth/profile');
+    const response = await api.request('get', '/api/v1/auth/profile');
     return response.data;
   } catch (error) {
     console.error('Failed to get user profile:', error);

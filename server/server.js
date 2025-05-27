@@ -204,17 +204,59 @@ const checkDatabaseConnection = (req, res, next) => {
 };
 
 // API routes with database connection check
-app.use('/api/auth', checkDatabaseConnection, authRoutes);
-app.use('/api/users', checkDatabaseConnection, combinedAuth, userRoutes);
+app.use('/api/v1/auth', checkDatabaseConnection, authRoutes);
+app.use('/api/v1/data/users', checkDatabaseConnection, combinedAuth, userRoutes);
 app.use('/api/v1/data/items', checkDatabaseConnection, combinedAuth, productRoutes);
-app.use('/api/orders', checkDatabaseConnection, combinedAuth, orderRoutes);
+app.use('/api/v1/data/orders', checkDatabaseConnection, combinedAuth, orderRoutes);
 app.use('/api/v1/data/inquiries', checkDatabaseConnection, combinedAuth, enquiryRoutes);
-app.use('/api/notifications', checkDatabaseConnection, combinedAuth, notificationRoutes);
-app.use('/api/active-users', checkDatabaseConnection, combinedAuth, activeUserRoutes);
+app.use('/api/v1/data/notifications', checkDatabaseConnection, combinedAuth, notificationRoutes);
+app.use('/api/v1/data/active-users', checkDatabaseConnection, combinedAuth, activeUserRoutes);
 app.use('/api/v1/data/visitors', checkDatabaseConnection, combinedAuth, visitorRoutes);
-app.use('/api/user-statistics', checkDatabaseConnection, combinedAuth, userStatisticsRoutes);
-app.use('/api/blogs', checkDatabaseConnection, combinedAuth, blogRoutes);
-app.use('/api/cards', checkDatabaseConnection, combinedAuth, cardRoutes);
+app.use('/api/v1/data/user-statistics', checkDatabaseConnection, combinedAuth, userStatisticsRoutes);
+app.use('/api/v1/data/blogs', checkDatabaseConnection, combinedAuth, blogRoutes);
+app.use('/api/v1/data/cards', checkDatabaseConnection, combinedAuth, cardRoutes);
+
+// Legacy routes for backward compatibility - will log deprecation warnings
+// These can be removed once frontend is fully updated
+app.use('/api/users', (req, res, next) => {
+  console.warn('[DEPRECATED] /api/users endpoint accessed, use /api/v1/data/users instead');
+  next();
+}, checkDatabaseConnection, combinedAuth, userRoutes);
+
+app.use('/api/orders', (req, res, next) => {
+  console.warn('[DEPRECATED] /api/orders endpoint accessed, use /api/v1/data/orders instead');
+  next();
+}, checkDatabaseConnection, combinedAuth, orderRoutes);
+
+app.use('/api/auth', (req, res, next) => {
+  console.warn('[DEPRECATED] /api/auth endpoint accessed, use /api/v1/auth instead');
+  next();
+}, checkDatabaseConnection, authRoutes);
+
+app.use('/api/notifications', (req, res, next) => {
+  console.warn('[DEPRECATED] /api/notifications endpoint accessed, use /api/v1/data/notifications instead');
+  next();
+}, checkDatabaseConnection, combinedAuth, notificationRoutes);
+
+app.use('/api/active-users', (req, res, next) => {
+  console.warn('[DEPRECATED] /api/active-users endpoint accessed, use /api/v1/data/active-users instead');
+  next();
+}, checkDatabaseConnection, combinedAuth, activeUserRoutes);
+
+app.use('/api/user-statistics', (req, res, next) => {
+  console.warn('[DEPRECATED] /api/user-statistics endpoint accessed, use /api/v1/data/user-statistics instead');
+  next();
+}, checkDatabaseConnection, combinedAuth, userStatisticsRoutes);
+
+app.use('/api/blogs', (req, res, next) => {
+  console.warn('[DEPRECATED] /api/blogs endpoint accessed, use /api/v1/data/blogs instead');
+  next();
+}, checkDatabaseConnection, combinedAuth, blogRoutes);
+
+app.use('/api/cards', (req, res, next) => {
+  console.warn('[DEPRECATED] /api/cards endpoint accessed, use /api/v1/data/cards instead');
+  next();
+}, checkDatabaseConnection, combinedAuth, cardRoutes);
 
 // External API proxy route - this keeps API tokens server-side
 // Apply rate limiting and caching to improve performance and prevent abuse
