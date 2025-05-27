@@ -5,11 +5,40 @@ const productController = {
   // Create a new product
   async createProduct(req, res) {
     try {
-      const product = new Product(req.body);
+      // Log request body in development mode
+      if (process.env.NODE_ENV === 'development') {
+        console.log('Creating product with data:', JSON.stringify(req.body, null, 2));
+      }
+      
+      // Ensure req.body is properly formatted
+      const productData = req.body;
+      
+      // Create the product with enhanced error handling
+      const product = new Product(productData);
+      
       await product.save();
-      res.status(201).json(product);
+      console.log('Product created successfully:', product._id);
+      res.status(201).json({
+        success: true,
+        product
+      });
     } catch (error) {
-      res.status(400).json({ message: error.message });
+      console.error('Error creating product:', error.message);
+      
+      if (error.name === 'ValidationError') {
+        // Handle mongoose validation errors
+        const validationErrors = Object.values(error.errors).map(err => err.message);
+        return res.status(400).json({ 
+          success: false, 
+          message: 'Validation error', 
+          errors: validationErrors 
+        });
+      }
+      
+      res.status(400).json({ 
+        success: false, 
+        message: error.message 
+      });
     }
   },
 

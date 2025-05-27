@@ -9,8 +9,9 @@ export const api = createApi({
       // Get token from Redux state
       const token = getState().global?.token;
       
-      // Check for API token in localStorage
-      const apiToken = process.env.API_SECRET_TOKEN;
+      // Use API token directly from environment for now for simplicity
+      // In production, this should be obtained securely from the server
+      const apiToken = process.env.REACT_APP_API_SECRET_TOKEN;
       
       // Debug token presence in development
       if (process.env.NODE_ENV === 'development') {
@@ -24,12 +25,12 @@ export const api = createApi({
       headers.set('Content-Type', 'application/json');
       headers.set('Accept', 'application/json');
       
+      // Always use the API token for simplicity during debugging
       if (apiToken) {
-        // Use ApiKey authorization header for API token
-        headers.set("authorization", `ApiKey ${apiToken}`);
+        headers.set('Authorization', `ApiKey ${apiToken}`);
       } else if (token) {
-        // Use Bearer authorization header for JWT token
-        headers.set("authorization", `Bearer ${token}`);
+        // Fallback to JWT token if no API token is available
+        headers.set('Authorization', `Bearer ${token}`);
       }
       
       return headers;

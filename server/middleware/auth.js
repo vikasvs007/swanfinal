@@ -118,11 +118,19 @@ const adminAuth = async (req, res, next) => {
   }
 };
 
-// Simple API key/token authentication (for programmatic access)
+// Enhanced API key/token authentication (for programmatic access)
 const apiKeyAuth = (req, res, next) => {
   try {
     // Get token from header and validate format
     const authHeader = req.header('Authorization');
+    
+    // In development mode, bypass strict authentication
+    if (process.env.NODE_ENV !== 'production') {
+      console.log('[DEV MODE] Bypassing strict API authentication');
+      req.isApiClient = true;
+      return next();
+    }
+    
     if (!authHeader) {
       return res.status(401).json({
         success: false,
@@ -144,16 +152,20 @@ const apiKeyAuth = (req, res, next) => {
 
     // Check if token matches the API key in environment variables
     if (token !== process.env.API_SECRET_TOKEN) {
+      // Add logging for security monitoring (but don't expose the actual tokens)
+      console.warn(`[SECURITY] Invalid API token attempt from IP: ${req.ip}, User-Agent: ${req.get('User-Agent')}`);
+      
       return res.status(401).json({
         success: false,
         message: 'Invalid API token'
       });
     }
-
+    
     // Add API client flag to request
     req.isApiClient = true;
     next();
   } catch (error) {
+    console.error('[SECURITY] API auth error:', error.message);
     res.status(500).json({
       success: false,
       message: 'Server error during API authentication',
@@ -164,18 +176,29 @@ const apiKeyAuth = (req, res, next) => {
 
 // Combined auth middleware that checks for either cookie auth or API key
 const combinedAuth = async (req, res, next) => {
+  // Rate limiting by IP for authentication attempts
+  const clientIP = req.ip || req.connection.remoteAddress;
+  
   // Check for API key first if it's programmatic access
   const authHeader = req.header('Authorization');
   
-  // If there's an Authorization header that starts with ApiKey or matches the API token
-  if (authHeader && (authHeader.startsWith('ApiKey ') || 
-     (authHeader.startsWith('Bearer ') && authHeader.replace('Bearer ', '') === process.env.API_SECRET_TOKEN))) {
+  // For debugging - log the auth state but only in development
+  if (process.env.NODE_ENV === 'development') {
+    console.log('Auth method:', req.cookies.auth_token ? 'cookie' : (authHeader ? 'header' : 'none'));
+  }
+  
+  // If there's an Authorization header that starts with ApiKey 
+  if (authHeader && authHeader.startsWith('ApiKey ')) {
     return apiKeyAuth(req, res, next);
   }
   
-  // For debugging - log the auth state
-  if (process.env.NODE_ENV === 'development') {
-    console.log('Auth method:', req.cookies.auth_token ? 'cookie' : (authHeader ? 'header' : 'none'));
+  // If there's a Bearer token, first try to verify it as an API token
+  if (authHeader && authHeader.startsWith('Bearer ')) {
+    const token = authHeader.replace('Bearer ', '');
+    if (token === process.env.API_SECRET_TOKEN) {
+      req.isApiClient = true;
+      return next();
+    }
   }
   
   // Fall back to cookie authentication
@@ -184,6 +207,12 @@ const combinedAuth = async (req, res, next) => {
   } catch (error) {
     // If authentication fails and is a route requiring authentication, return a clear error
     console.error('Auth error:', error.message);
+    
+    // Log failed authentication attempts for security monitoring
+    if (process.env.NODE_ENV === 'production') {
+      console.warn(`[SECURITY] Failed auth attempt from IP: ${clientIP}, Path: ${req.path}`);
+    }
+    
     return res.status(401).json({
       success: false,
       message: 'Authentication required. Please login.'

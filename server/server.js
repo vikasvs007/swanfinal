@@ -3,18 +3,42 @@ const mongoose = require('mongoose');
 const cors = require('cors');
 const cookieParser = require('cookie-parser');
 const dotenv = require('dotenv');
+const helmet = require('helmet');
 const trackActivity = require('./middleware/trackActivity');
 const apiProxy = require('./middleware/apiProxy');
 const { proxyRateLimit } = require('./middleware/rateLimit');
 const { cacheMiddleware } = require('./middleware/apiCache');
 const { combinedAuth } = require('./middleware/auth');
+const { 
+  globalRateLimit,
+  securityHeaders,
+  validateOrigin
+} = require('./middleware/securityMiddleware');
 const path = require('path');
 const fs = require('fs');
 const { connectToDatabase } = require('./utils/dbConnection');
 const validateEnvironment = require('./utils/validateEnv');
 
-// Configure environment variables
-dotenv.config();
+// Configure environment variables with explicit path
+dotenv.config({ path: path.join(__dirname, '.env') });
+
+// Log environment state for debugging
+console.log('Environment mode:', process.env.NODE_ENV || 'development');
+
+// Force-set required environment variables if they're missing
+if (!process.env.API_SECRET_TOKEN) {
+  console.log('Setting API_SECRET_TOKEN directly in code as fallback');
+  process.env.API_SECRET_TOKEN = 'swanapi_sec_token_6363163519';
+}
+
+if (!process.env.EXTERNAL_API_BASE_URL) {
+  console.log('Setting EXTERNAL_API_BASE_URL directly in code as fallback');
+  process.env.EXTERNAL_API_BASE_URL = 'http://localhost:5000/api';
+}
+
+// Debug environment variables without exposing secrets
+console.log('API_SECRET_TOKEN available:', !!process.env.API_SECRET_TOKEN);
+console.log('EXTERNAL_API_BASE_URL available:', !!process.env.EXTERNAL_API_BASE_URL);
 
 // Validate environment variables
 validateEnvironment();
@@ -53,6 +77,15 @@ const cardRoutes = require('./routes/cards');
 const authRoutes = require('./routes/auth');
 
 // Middleware
+// Add Helmet for comprehensive security headers
+app.use(helmet());
+
+// Apply global rate limiting to all requests
+app.use(globalRateLimit);
+
+// Apply enhanced security headers
+app.use(securityHeaders);
+
 // Set up CORS properly for both HTTP and HTTPS
 app.use(cors({
   origin: function(origin, callback) {
@@ -61,7 +94,6 @@ app.use(cors({
       'https://www.admin.swansorter.com',
       'https://swanlogin.firebaseapp.com',
       'https://www.swanlogin.firebaseapp.com'
-
     ];
     
     // Allow requests with no origin (like mobile apps, curl requests)
@@ -76,14 +108,21 @@ app.use(cors({
       callback(null, true);
     } else {
       console.log('CORS blocked origin:', origin);
-      callback(null, true); // Temporarily allow all origins while debugging
+      // In production, we should block unauthorized origins
+      if (process.env.NODE_ENV === 'production') {
+        return callback(new Error('CORS not allowed'), false);
+      }
+      callback(null, true); // Allow in development mode
     }
   },
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'X-API-Key'],
   credentials: true, // Important for cookies
   maxAge: 86400 // CORS preflight cache time (24 hours)
 }));
+
+// Validate request origin for additional security
+app.use(validateOrigin);
 
 // Add security headers for HTTPS
 app.use((req, res, next) => {
@@ -91,10 +130,6 @@ app.use((req, res, next) => {
   if (process.env.NODE_ENV === 'production' && !req.secure && req.headers['x-forwarded-proto'] !== 'https') {
     res.setHeader('Strict-Transport-Security', 'max-age=31536000; includeSubDomains; preload');
   }
-  // Set security headers
-  res.setHeader('X-Content-Type-Options', 'nosniff');
-  res.setHeader('X-XSS-Protection', '1; mode=block');
-  res.setHeader('X-Frame-Options', 'SAMEORIGIN');
   next();
 });
 

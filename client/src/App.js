@@ -8,6 +8,8 @@ import { setToken } from "state";
 import React from "react";
 import { initializeSecureStorage } from './utils/cleanStorage';
 import { isAuthenticated, getCurrentUser } from './utils/auth';
+import ApiTokenInitializer from './components/ApiTokenInitializer';
+import { setApiToken } from './utils/authUtils';
 
 import Layout from "scenes/layout";
 import Dashboard from "scenes/dashboard";
@@ -84,6 +86,8 @@ function App() {
       <BrowserRouter>
         <ThemeProvider theme={theme}>
           <CssBaseline />
+          {/* Initialize API token security */}
+          <ApiTokenInitializer />
           <Routes>
             {/* Public Routes */}
             <Route path="/login" element={
