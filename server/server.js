@@ -78,6 +78,34 @@ for (const dir of uploadDirs) {
 // Create Express app
 const app = express();
 
+// ===== ABSOLUTE CORS ENFORCER =====
+// This must be the first middleware to guarantee CORS headers on all responses
+app.use((req, res, next) => {
+  // Get the origin of the request
+  const origin = req.headers.origin;
+  
+  // Always allow the frontend domain
+  if (origin === 'https://swanfinal-1.onrender.com') {
+    res.setHeader('Access-Control-Allow-Origin', origin);
+  }
+  
+  // Set other CORS headers
+  res.setHeader('Access-Control-Allow-Credentials', 'true');
+  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, PATCH, DELETE, OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization, X-API-Key');
+  
+  // Handle preflight requests
+  if (req.method === 'OPTIONS') {
+    res.setHeader('Access-Control-Max-Age', '86400'); // 24 hours
+    return res.status(204).end();
+  }
+  
+  next();
+});
+
+// Disable the built-in express.js CORS middleware as we're handling it manually
+// app.use(cors());
+
 // Import routes
 const userRoutes = require('./routes/users');
 const productRoutes = require('./routes/products');
@@ -114,51 +142,7 @@ if (process.env.NODE_ENV === 'production') {
 app.use(consoleProtection);
 
 // Set up CORS properly for both HTTP and HTTPS
-// CORS configuration - place this before any other middleware
-const allowedOrigins = [
-  'https://admin.swansorter.com',
-  'https://www.admin.swansorter.com',
-  'https://swanlogin.firebaseapp.com',
-  'https://www.swanlogin.firebaseapp.com',
-  'https://swanfinal.onrender.com',
-  'https://swansorter.com',
-  'https://swanfinal-1.onrender.com',
-  'https://www.swanfinal-1.onrender.com',
-  'https://www.swansorter.com'
-];
-
-// Replace the cors middleware with a more direct approach
-app.use((req, res, next) => {
-  const origin = req.headers.origin;
-  
-  // Set CORS headers for all responses
-  // Allow specific origin or * in development
-  if (origin) {
-    if (allowedOrigins.includes(origin) || process.env.NODE_ENV !== 'production') {
-      res.setHeader('Access-Control-Allow-Origin', origin);
-    } else {
-      console.log('CORS blocked origin:', origin);
-      // In production, we'll still set the header but log it
-      res.setHeader('Access-Control-Allow-Origin', origin);
-    }
-  } else {
-    // For requests without origin (like curl)
-    res.setHeader('Access-Control-Allow-Origin', '*');
-  }
-  
-  // Essential CORS headers for all responses
-  res.setHeader('Access-Control-Allow-Credentials', 'true');
-  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, PATCH, DELETE, OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization, X-API-Key');
-  
-  // Handle preflight requests
-  if (req.method === 'OPTIONS') {
-    res.setHeader('Access-Control-Max-Age', '86400'); // 24 hours
-    return res.status(204).end();
-  }
-  
-  next();
-});
+// The CORS handling is now done by the CORS enforcer middleware at the beginning of the file
 
 // No need for the cors middleware as we're handling it directly above
 
