@@ -25,6 +25,7 @@ const consoleProtection = (req, res, next) => {
       'admin.swansorter.com',
       'www.admin.swansorter.com',
       'swanlogin.firebaseapp.com',
+      'swanfinal-1.onrender.com',
       'localhost:3000'
     ];
     
