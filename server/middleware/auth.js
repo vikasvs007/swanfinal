@@ -124,17 +124,26 @@ const apiKeyAuth = (req, res, next) => {
     // Get token from header and validate format
     const authHeader = req.header('Authorization');
     
-    // In development mode, bypass strict authentication
-    if (process.env.NODE_ENV !== 'production') {
-      console.log('[DEV MODE] Bypassing strict API authentication');
+    // Detect request from Postman or similar API tools
+    const userAgent = req.get('User-Agent') || '';
+    const isApiTool = userAgent.includes('Postman') || 
+                     userAgent.includes('insomnia') ||
+                     userAgent.includes('curl');
+    
+    // For development UI access only (browser), we can bypass
+    // But ALWAYS require auth for API tools, even in development
+    if (process.env.NODE_ENV !== 'production' && !isApiTool) {
+      console.log('[DEV MODE] Bypassing strict API authentication for browser');
       req.isApiClient = true;
       return next();
     }
     
+    // Always require auth header for API tools
     if (!authHeader) {
+      console.warn(`[SECURITY] Missing auth header from: ${req.ip}, Agent: ${userAgent}`);
       return res.status(401).json({
         success: false,
-        message: 'Authorization header missing'
+        message: 'Authorization header required'
       });
     }
 
@@ -179,13 +188,38 @@ const combinedAuth = async (req, res, next) => {
   // Rate limiting by IP for authentication attempts
   const clientIP = req.ip || req.connection.remoteAddress;
   
-  // Check for API key first if it's programmatic access
+  // Get token from header and validate format
   const authHeader = req.header('Authorization');
   
-  // For debugging - log the auth state but only in development
+  // Detect request from Postman or similar API tools
+  const userAgent = req.get('User-Agent') || '';
+  const isApiTool = userAgent.includes('Postman') || 
+                   userAgent.includes('insomnia') ||
+                   userAgent.includes('curl');
+  
+  // Log the auth state in development
   if (process.env.NODE_ENV === 'development') {
     console.log('Auth method:', req.cookies.auth_token ? 'cookie' : (authHeader ? 'header' : 'none'));
+    if (isApiTool) {
+      console.log(`API tool detected: ${userAgent}`);
+    }
   }
+  
+  // For API tools, ALWAYS require proper authentication
+  if (isApiTool) {
+    // Require Authorization header
+    if (!authHeader) {
+      return res.status(401).json({
+        success: false,
+        message: 'API tools must provide Authorization header'
+      });
+    }
+    
+    // Pass to apiKeyAuth for validation
+    return apiKeyAuth(req, res, next);
+  }
+  
+  // For browser requests, handle different auth methods
   
   // If there's an Authorization header that starts with ApiKey 
   if (authHeader && authHeader.startsWith('ApiKey ')) {
@@ -209,8 +243,8 @@ const combinedAuth = async (req, res, next) => {
     console.error('Auth error:', error.message);
     
     // Log failed authentication attempts for security monitoring
-    if (process.env.NODE_ENV === 'production') {
-      console.warn(`[SECURITY] Failed auth attempt from IP: ${clientIP}, Path: ${req.path}`);
+    if (process.env.NODE_ENV === 'production' || isApiTool) {
+      console.warn(`[SECURITY] Failed auth attempt from IP: ${clientIP}, Path: ${req.path}, Agent: ${userAgent}`);
     }
     
     return res.status(401).json({
