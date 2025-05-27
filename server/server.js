@@ -10,6 +10,20 @@ const { proxyRateLimit } = require('./middleware/rateLimit');
 const { cacheMiddleware } = require('./middleware/apiCache');
 const { combinedAuth } = require('./middleware/auth');
 const consoleProtection = require('./middleware/consoleProtection');
+
+// Import IP blocklist middleware
+let ipBlocklist;
+try {
+  ipBlocklist = require('./middleware/ipBlocklist');
+  console.log('IP Blocklist middleware loaded');
+} catch (error) {
+  console.warn('IP Blocklist middleware not available, running without IP blocking');
+  // Create dummy middleware if module not available
+  ipBlocklist = {
+    blocklistMiddleware: (req, res, next) => next()
+  };
+}
+
 const { 
   globalRateLimit,
   securityHeaders,
@@ -80,6 +94,10 @@ const authRoutes = require('./routes/auth');
 // Middleware
 // Add Helmet for comprehensive security headers
 app.use(helmet());
+
+// IP blocklist should be checked first, before any other middleware
+// This immediately blocks known malicious IPs without wasting resources
+app.use(ipBlocklist.blocklistMiddleware);
 
 // Apply global rate limiting to all requests
 app.use(globalRateLimit);
@@ -171,19 +189,7 @@ connectToDatabase()
 app.get('/', (req, res) => {
   res.json({
     message: 'Welcome to the CRUD API',
-    endpoints: {
-      auth: '/api/auth',
-      users: '/api/users',
-      products: '/api/products',
-      orders: '/api/orders',
-      enquiries: '/api/enquiries',
-      notifications: '/api/notifications',
-      activeUsers: '/api/active-users',
-      visitors: '/api/visitors',
-      userStatistics: '/api/user-statistics',
-      blogs: '/api/blogs',
-      cards: '/api/cards'
-    }
+ 
   });
 });
 
