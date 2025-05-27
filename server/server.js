@@ -114,38 +114,62 @@ if (process.env.NODE_ENV === 'production') {
 app.use(consoleProtection);
 
 // Set up CORS properly for both HTTP and HTTPS
+// Apply CORS with explicit headers to ensure they're always set
+app.use((req, res, next) => {
+  const allowedOrigins = [
+    'https://admin.swansorter.com',
+    'https://www.admin.swansorter.com',
+    'https://swanlogin.firebaseapp.com',
+    'https://www.swanlogin.firebaseapp.com',
+    'https://swanfinal.onrender.com',
+    'https://swansorter.com',
+    'https://swanfinal-1.onrender.com',
+    'https://www.swanfinal-1.onrender.com',
+    'https://www.swansorter.com'
+  ];
+  
+  const origin = req.headers.origin;
+  
+  // Always set CORS headers for OPTIONS requests (preflight)
+  if (req.method === 'OPTIONS') {
+    res.header('Access-Control-Allow-Methods', 'GET,POST,PUT,DELETE,PATCH,OPTIONS');
+    res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With, X-API-Key');
+    res.header('Access-Control-Max-Age', '86400'); // 24 hours
+  }
+  
+  // Allow requests with no origin (like mobile apps, curl requests)
+  if (!origin) {
+    return next();
+  }
+  
+  // Allow localhost in development
+  if (process.env.NODE_ENV !== 'production' && origin.includes('localhost')) {
+    res.header('Access-Control-Allow-Origin', origin);
+    res.header('Access-Control-Allow-Credentials', 'true');
+    return next();
+  }
+  
+  if (allowedOrigins.includes(origin)) {
+    res.header('Access-Control-Allow-Origin', origin);
+    res.header('Access-Control-Allow-Credentials', 'true');
+    next();
+  } else {
+    console.log('CORS blocked origin:', origin);
+    // In production, we should block unauthorized origins
+    if (process.env.NODE_ENV === 'production') {
+      return res.status(403).json({ error: 'CORS not allowed from this origin' });
+    }
+    // Allow in development mode
+    res.header('Access-Control-Allow-Origin', origin);
+    res.header('Access-Control-Allow-Credentials', 'true');
+    next();
+  }
+});
+
+// Still keep the cors middleware for backward compatibility
 app.use(cors({
   origin: function(origin, callback) {
-    const allowedOrigins = [
-      'https://admin.swansorter.com',
-      'https://www.admin.swansorter.com',
-      'https://swanlogin.firebaseapp.com',
-      'https://www.swanlogin.firebaseapp.com',
-      'https://swanfinal.onrender.com',
-      'https://swansorter.com',
-      'https://swanfinal-1.onrender.com',
-      'https://www.swanfinal-1.onrender.com',
-      'https://www.swansorter.com'
-    ];
-    
-    // Allow requests with no origin (like mobile apps, curl requests)
-    if (!origin) return callback(null, true);
-    
-    // Allow localhost in development
-    if (process.env.NODE_ENV !== 'production' && origin.includes('localhost')) {
-      return callback(null, true);
-    }
-    
-    if (allowedOrigins.indexOf(origin) !== -1 || !origin) {
-      callback(null, true);
-    } else {
-      console.log('CORS blocked origin:', origin);
-      // In production, we should block unauthorized origins
-      if (process.env.NODE_ENV === 'production') {
-        return callback(new Error('CORS not allowed'), false);
-      }
-      callback(null, true); // Allow in development mode
-    }
+    callback(null, true); // Let our custom middleware above handle it
   },
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'X-API-Key'],
