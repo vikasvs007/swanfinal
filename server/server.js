@@ -102,6 +102,7 @@ app.use((req, res, next) => {
   // Log the origin and method for debugging in production
   if (process.env.NODE_ENV === 'production') {
     console.log(`[CORS] Request method: ${req.method}, origin: ${origin}`);
+    console.log(`[CORS] Request headers:`, req.headers);
   }
   
   // List of allowed frontend domains
@@ -126,27 +127,23 @@ app.use((req, res, next) => {
     console.log(`- User-Agent: ${req.headers['user-agent']}`);
   }
   
-  // In production, be more permissive to ensure functionality
-  if (process.env.NODE_ENV === 'production') {
-    // For production, use a more permissive approach to ensure functionality
-    if (origin) {
-      res.setHeader('Access-Control-Allow-Origin', origin);
-    } else {
-      // If no origin is provided, use * (this helps with some client configurations)
-      res.setHeader('Access-Control-Allow-Origin', '*');
-      console.log('[CORS] No origin in production request - using wildcard');
-    }
+  // In both production and development, properly handle CORS
+  if (origin) {
+    // If origin is provided, set it explicitly (required for credentials: 'include')
+    res.setHeader('Access-Control-Allow-Origin', origin);
+    // Important: When using credentials, Access-Control-Allow-Origin cannot be '*'
+    res.setHeader('Access-Control-Allow-Credentials', 'true');
+  } else if (process.env.NODE_ENV === 'production') {
+    // In production, be more permissive if no origin is provided
+    // This isn't ideal for security but helps with compatibility
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    console.log('[CORS] No origin in request, using * wildcard for CORS');
   } else {
-    // In development, use standard approach
-    if (origin && allowedOrigins.includes(origin)) {
-      res.setHeader('Access-Control-Allow-Origin', origin);
-    } else {
-      res.setHeader('Access-Control-Allow-Origin', '*');
-    }
+    // For development and testing with no origin
+    res.setHeader('Access-Control-Allow-Origin', 'http://localhost:3000');
   }
   
   // Set other CORS headers - be explicit about allowed methods and headers
-  res.setHeader('Access-Control-Allow-Credentials', 'true');
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, PATCH, DELETE, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization, X-API-Key');
   
@@ -172,6 +169,7 @@ app.options('*', (req, res) => {
   // This is critical for CORS preflight to work correctly
   if (origin) {
     res.setHeader('Access-Control-Allow-Origin', origin);
+    res.setHeader('Access-Control-Allow-Credentials', 'true');
   } else {
     res.setHeader('Access-Control-Allow-Origin', '*');
   }
