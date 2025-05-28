@@ -2,7 +2,7 @@
 const express = require('express');
 const router = express.Router();
 const blogController = require('../controllers/blogController');
-const { combinedAuth, adminAuth } = require('../middleware/auth');
+const { combinedAuth, adminAuth, apiKeyAuth } = require('../middleware/auth');
 const multer = require('multer');
 const path = require('path');
 const fs = require('fs');
@@ -77,13 +77,13 @@ const handleUploadErrors = (err, req, res, next) => {
 };
 
 // Upload an image for a blog - requires admin authentication
-router.post('/images/upload', combinedAuth, upload.single('image'), handleUploadErrors, blogController.uploadImage);
+router.post('/images/upload', apiKeyAuth, upload.single('image'), handleUploadErrors, blogController.uploadImage);
 
 // Create a new blog - requires admin authentication
-router.post('/posts/create', combinedAuth, blogController.createBlog);
+router.post('/posts/create', apiKeyAuth, blogController.createBlog);
 
 // Update a blog - requires admin authentication
-router.put('/posts/update/:id', combinedAuth, blogController.updateBlog);
+router.put('/posts/update/:id', apiKeyAuth, blogController.updateBlog);
 
 // Delete a blog - requires admin authentication
 router.delete('/posts/remove/:id', combinedAuth, blogController.deleteBlog);
