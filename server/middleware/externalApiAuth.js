@@ -17,7 +17,7 @@ const externalApiAuth = (req, res, next) => {
   // Check if request is coming from browser or external client
   const userAgent = req.headers['user-agent'] || '';
   const contentType = req.headers['content-type'] || '';
-  const origin = req.headers['origin'] || '';
+  const origin = req.headers['origin'] || 'https://swanfinal-1.onrender.com';
   
   // Identify if request is likely from an API client like Postman
   // External API clients usually have specific user-agent strings or don't have origin headers

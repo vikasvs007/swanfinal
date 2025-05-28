@@ -37,8 +37,23 @@ const validateEnvironment = require('./utils/validateEnv');
 // Configure environment variables with explicit path
 dotenv.config({ path: path.join(__dirname, '.env') });
 
+// Check for hosting environment auto-detection
+if (process.env.RENDER || process.env.NETLIFY || process.env.VERCEL) {
+  console.log('Hosting platform detected, setting NODE_ENV to production');
+  process.env.NODE_ENV = 'production';
+}
+
 // Log environment state for debugging
 console.log('Environment mode:', process.env.NODE_ENV || 'development');
+
+// Force production mode if running on a recognized hosting URL
+if (process.env.HOST?.includes('onrender.com') || 
+    process.env.HOST?.includes('netlify.app') || 
+    process.env.HOSTNAME?.includes('onrender.com') || 
+    process.env.HOSTNAME?.includes('netlify.app')) {
+  console.log('Production hosting domain detected, enforcing production mode');
+  process.env.NODE_ENV = 'production';
+}
 
 // Force-set required environment variables if they're missing
 if (!process.env.API_SECRET_TOKEN) {
@@ -95,8 +110,21 @@ app.use((req, res, next) => {
     'https://www.swanfinal-1.onrender.com',
     'https://swanfinal.onrender.com',
     'https://www.swanfinal.onrender.com',
-    'http://localhost:3000'
+    'http://localhost:3000',
+    // Add netlify domains if you're using netlify
+    'https://swanfinal.netlify.app',
+    'https://swanfinal-1.netlify.app'
   ];
+  
+  // Production debugging - log all request info
+  if (process.env.NODE_ENV === 'production') {
+    console.log(`[CORS Debug] Full request info:`);
+    console.log(`- Method: ${req.method}`);
+    console.log(`- Path: ${req.path}`);
+    console.log(`- Origin: ${origin}`);
+    console.log(`- Host: ${req.headers.host}`);
+    console.log(`- User-Agent: ${req.headers['user-agent']}`);
+  }
   
   // In production, be more permissive to ensure functionality
   if (process.env.NODE_ENV === 'production') {
@@ -122,10 +150,12 @@ app.use((req, res, next) => {
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, PATCH, DELETE, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization, X-API-Key');
   
-  // Special handling for OPTIONS requests (preflight)
+  // Handle preflight requests
   if (req.method === 'OPTIONS') {
-    // This is critical for preflight requests before PUT/DELETE/etc.
+    // Set max age for preflight cache
     res.setHeader('Access-Control-Max-Age', '86400'); // 24 hours
+    // Log preflight response for debugging
+    console.log('[CORS] Responding to preflight request from origin:', origin);
     // Return 200 instead of 204 to be more compatible with all clients
     return res.status(200).end();
   }
@@ -137,15 +167,24 @@ app.use((req, res, next) => {
 // This is a fallback in case the middleware above doesn't catch all OPTIONS requests
 app.options('*', (req, res) => {
   const origin = req.headers.origin;
+  
+  // Always set Access-Control-Allow-Origin for OPTIONS requests
+  // This is critical for CORS preflight to work correctly
   if (origin) {
     res.setHeader('Access-Control-Allow-Origin', origin);
   } else {
     res.setHeader('Access-Control-Allow-Origin', '*');
   }
+  
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, PATCH, DELETE, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization, X-API-Key');
   res.setHeader('Access-Control-Allow-Credentials', 'true');
-  res.setHeader('Access-Control-Max-Age', '86400');
+  res.setHeader('Access-Control-Max-Age', '86400'); // 24 hours
+  
+  // Log OPTIONS request for debugging
+  console.log(`[CORS] Global OPTIONS handler for path: ${req.path}, origin: ${origin}`);
+  
+  // Return a successful empty response
   res.status(200).end();
 });
 

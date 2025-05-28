@@ -2,7 +2,7 @@ import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
 
 export const api = createApi({
   baseQuery: fetchBaseQuery({
-    baseUrl: process.env.REACT_APP_BASE_URL,
+    baseUrl: process.env.REACT_APP_BASE_URL || 'https://swanfinal.onrender.com/api',
     credentials: 'include', // Important for CORS with cookies
     mode: 'cors', // Explicitly set CORS mode
     cache: 'no-cache', // Prevent caching issues
