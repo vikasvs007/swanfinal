@@ -145,7 +145,9 @@ app.use((req, res, next) => {
   
   // Set other CORS headers - be explicit about allowed methods and headers
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, PATCH, DELETE, OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization, X-API-Key');
+  res.setHeader('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization, X-API-Key, X-CSRF-Token');
+  // Ensure that the browser can expose these headers to JavaScript
+  res.setHeader('Access-Control-Expose-Headers', 'Content-Length, X-API-Key, X-Request-ID');
   
   // Handle preflight requests
   if (req.method === 'OPTIONS') {
@@ -175,9 +177,10 @@ app.options('*', (req, res) => {
   }
   
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, PATCH, DELETE, OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization, X-API-Key');
+  res.setHeader('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization, X-API-Key, X-CSRF-Token');
   res.setHeader('Access-Control-Allow-Credentials', 'true');
   res.setHeader('Access-Control-Max-Age', '86400'); // 24 hours
+  res.setHeader('Access-Control-Expose-Headers', 'Content-Length, X-API-Key, X-Request-ID');
   
   // Log OPTIONS request for debugging
   console.log(`[CORS] Global OPTIONS handler for path: ${req.path}, origin: ${origin}`);
@@ -243,7 +246,24 @@ app.use((req, res, next) => {
 
 // OPTIONS requests are now handled by our main CORS middleware above
 
-app.use(express.json({ limit: '50mb' }));
+// Configure body parsers with more explicit options and error handling
+app.use(express.json({ 
+  limit: '50mb',
+  verify: (req, res, buf) => {
+    req.rawBody = buf; // Store raw body for webhooks or signature verification
+  },
+  strict: false // Be more lenient with JSON parsing
+}));
+
+// Handle JSON parsing errors explicitly
+app.use((err, req, res, next) => {
+  if (err instanceof SyntaxError && err.status === 400 && 'body' in err) {
+    console.error('[Body Parser] JSON parse error:', err.message);
+    return res.status(400).json({ success: false, message: 'Invalid JSON in request body' });
+  }
+  next(err);
+});
+
 app.use(express.urlencoded({ extended: true, limit: '50mb' }));
 app.use(cookieParser()); // Add cookie parser
 app.use(trackActivity);

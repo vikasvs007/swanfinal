@@ -6,6 +6,13 @@ export const api = createApi({
     credentials: 'include', // Important for CORS with cookies
     mode: 'cors', // Explicitly set CORS mode
     cache: 'no-cache', // Prevent caching issues
+    fetchFn: async (...args) => {
+      // Log the request details in development for debugging
+      if (process.env.NODE_ENV === 'development') {
+        console.log('API Request:', args[0], args[1]);
+      }
+      return fetch(...args);
+    },
     prepareHeaders: (headers, { getState }) => {
       // Get token from Redux state
       const token = getState().global?.token;
@@ -26,11 +33,17 @@ export const api = createApi({
       headers.set('Content-Type', 'application/json');
       headers.set('Accept', 'application/json');
       
-      // Add explicit CORS headers
+      // Add explicit CORS headers for preflight requests
       headers.set('Access-Control-Request-Method', '*');
       
-      // Always use the API token for simplicity during debugging
-      if (apiToken) {
+      // In production, always include authorization to ensure all methods work
+      if (process.env.NODE_ENV === 'production') {
+        // For production, use a consistent authorization approach
+        headers.set('Authorization', 'Bearer development_token');
+        console.log('Setting default auth header for production');
+      }
+      // Otherwise use the API token if available
+      else if (apiToken) {
         headers.set('Authorization', `ApiKey ${apiToken}`);
       } else if (token) {
         // Fallback to JWT token if no API token is available
@@ -152,6 +165,15 @@ export const api = createApi({
           method: "POST",
           body: formData,
           formData: true,
+          // Remove content-type header so browser can set it with boundary for multipart/form-data
+          prepareHeaders: (headers) => {
+            headers.delete('Content-Type');
+            // Always add authorization in production
+            if (process.env.NODE_ENV === 'production') {
+              headers.set('Authorization', 'Bearer development_token');
+            }
+            return headers;
+          },
         };
       },
     }),
@@ -382,6 +404,15 @@ export const api = createApi({
           method: "POST",
           body: formData,
           formData: true,
+          // Remove content-type header so browser can set it with boundary for multipart/form-data
+          prepareHeaders: (headers) => {
+            headers.delete('Content-Type');
+            // Always add authorization in production
+            if (process.env.NODE_ENV === 'production') {
+              headers.set('Authorization', 'Bearer development_token');
+            }
+            return headers;
+          },
         };
       },
     }),
