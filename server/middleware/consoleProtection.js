@@ -24,8 +24,8 @@ const consoleProtection = (req, res, next) => {
     const allowedDomains = [
       'admin.swansorter.com',
       'www.admin.swansorter.com',
-      'swanlogin.firebaseapp.com',
       'swanfinal-1.onrender.com',
+      'www.swanfinal-1.onrender.com',
       'localhost:3000'
     ];
     

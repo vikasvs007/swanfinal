@@ -7,7 +7,7 @@ const { validateRequest, productValidationRules, sensitiveOperationsLimit } = re
 
 // Create a new product - requires admin authentication and input validation
 router.post('/', 
-  apiKeyAuth, 
+  combinedAuth, 
   sensitiveOperationsLimit, 
   validateRequest(productValidationRules),
   productController.createProduct
@@ -24,7 +24,7 @@ router.get('/:id', productController.getProduct);
 
 // Update a product - requires admin authentication and input validation
 router.put('/:id', 
-  apiKeyAuth, 
+  combinedAuth, 
   sensitiveOperationsLimit,
   validateRequest(productValidationRules),
   productController.updateProduct
@@ -32,7 +32,7 @@ router.put('/:id',
 
 // Delete a product - requires admin authentication and rate limiting
 router.delete('/:id', 
-  apiKeyAuth, 
+  combinedAuth, 
   sensitiveOperationsLimit,
   productController.deleteProduct
 );
