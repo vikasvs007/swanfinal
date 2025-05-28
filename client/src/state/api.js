@@ -38,9 +38,14 @@ export const api = createApi({
       
       // In production, always include authorization to ensure all methods work
       if (process.env.NODE_ENV === 'production') {
-        // For production, use a consistent authorization approach
-        headers.set('Authorization', 'Bearer development_token');
-        console.log('Setting default auth header for production');
+        // For production, use the API token from environment variables
+        const apiToken = process.env.REACT_APP_API_SECRET_TOKEN;
+        if (apiToken) {
+          headers.set('Authorization', `ApiKey ${apiToken}`);
+          console.log('Setting API key auth header for production');
+        } else {
+          console.warn('API token not available in production environment');
+        }
       }
       // Otherwise use the API token if available
       else if (apiToken) {
@@ -214,19 +219,47 @@ export const api = createApi({
       providesTags: ["Products"],
     }),
     createProduct: build.mutation({
-      query: (data) => ({
-        url: "v1/data/items",
-        method: "POST",
-        body: data,
-      }),
+      query: (data) => {
+        return {
+          url: "v1/data/items",
+          method: "POST",
+          body: data,
+          // Add custom headers for this request
+          prepareHeaders: (headers) => {
+            // Always use API token in production
+            if (process.env.NODE_ENV === 'production') {
+              const apiToken = process.env.REACT_APP_API_SECRET_TOKEN;
+              if (apiToken) {
+                headers.set('Authorization', `ApiKey ${apiToken}`);
+                console.log('Setting product creation API token auth header');
+              }
+            }
+            return headers;
+          }
+        };
+      },
       invalidatesTags: ["Products"],
     }),
     updateProduct: build.mutation({
-      query: ({ id, ...data }) => ({
-        url: `v1/data/items/${id}`,
-        method: "PUT",
-        body: data,
-      }),
+      query: ({ id, ...data }) => {
+        return {
+          url: `v1/data/items/${id}`,
+          method: "PUT",
+          body: data,
+          // Add custom headers for this request
+          prepareHeaders: (headers) => {
+            // Always use API token in production
+            if (process.env.NODE_ENV === 'production') {
+              const apiToken = process.env.REACT_APP_API_SECRET_TOKEN;
+              if (apiToken) {
+                headers.set('Authorization', `ApiKey ${apiToken}`);
+                console.log('Setting product update API token auth header');
+              }
+            }
+            return headers;
+          }
+        };
+      },
       invalidatesTags: ["Products"],
     }),
     deleteProduct: build.mutation({
@@ -243,19 +276,56 @@ export const api = createApi({
       providesTags: ["Orders"],
     }),
     createOrder: build.mutation({
-      query: (data) => ({
-        url: "v1/data/orders/create",
-        method: "POST",
-        body: data,
-      }),
+      query: (data) => {
+        // Ensure required fields are present
+        const orderData = {
+          ...data,
+          // Default values for required fields if not provided
+          total_amount: data.total_amount || 0,
+          order_number: data.order_number || `ORD-${Date.now()}`
+        };
+        
+        // Build the request with proper authorization
+        return {
+          url: "v1/data/orders/create",
+          method: "POST",
+          body: orderData,
+          // Add custom headers for this request
+          prepareHeaders: (headers) => {
+            // Always use API token in production
+            if (process.env.NODE_ENV === 'production') {
+              const apiToken = process.env.REACT_APP_API_SECRET_TOKEN;
+              if (apiToken) {
+                headers.set('Authorization', `ApiKey ${apiToken}`);
+                console.log('Setting order creation API token auth header');
+              }
+            }
+            return headers;
+          }
+        };
+      },
       invalidatesTags: ["Orders"],
     }),
     updateOrder: build.mutation({
-      query: ({ id, data }) => ({
-        url: `v1/data/orders/update/${id}`,
-        method: "PUT",
-        body: data,
-      }),
+      query: ({ id, data }) => {
+        return {
+          url: `v1/data/orders/update/${id}`,
+          method: "PUT",
+          body: data,
+          // Add custom headers for this request
+          prepareHeaders: (headers) => {
+            // Always use API token in production
+            if (process.env.NODE_ENV === 'production') {
+              const apiToken = process.env.REACT_APP_API_SECRET_TOKEN;
+              if (apiToken) {
+                headers.set('Authorization', `ApiKey ${apiToken}`);
+                console.log('Setting order update API token auth header');
+              }
+            }
+            return headers;
+          }
+        };
+      },
       invalidatesTags: ["Orders"],
     }),
     deleteOrder: build.mutation({
