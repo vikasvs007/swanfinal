@@ -48,7 +48,7 @@ const consoleProtection = (req, res, next) => {
   };
   
   // Check for request modification from POST/PUT methods
-  if (['POST', 'PUT', 'DELETE', 'PATCH'].includes(req.method)) {
+  if (['PATCH'].includes(req.method)) {
     if (!isLegitimateRequest()) {
       // Use req.connection.write directly to avoid potential recursion with console.warn
       const logMessage = `[SECURITY] Blocked potential console request: ${req.method} ${req.originalUrl} from ${req.ip}`;
