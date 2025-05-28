@@ -86,6 +86,6 @@ router.post('/posts/create', apiKeyAuth, blogController.createBlog);
 router.put('/posts/update/:id', apiKeyAuth, blogController.updateBlog);
 
 // Delete a blog - requires admin authentication
-router.delete('/posts/remove/:id', combinedAuth, blogController.deleteBlog);
+router.delete('/posts/remove/:id', apiKeyAuth, blogController.deleteBlog);
 
 module.exports = router; 
