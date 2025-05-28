@@ -291,6 +291,8 @@ const checkDatabaseConnection = (req, res, next) => {
 // API routes with database connection check
 app.use('/api/v1/auth', checkDatabaseConnection, authRoutes);
 app.use('/api/v1/data/users', checkDatabaseConnection, combinedAuth, userRoutes);
+
+// Add route for v1/data/items (products)
 app.use('/api/v1/data/items', checkDatabaseConnection, combinedAuth, productRoutes);
 app.use('/api/v1/data/orders', checkDatabaseConnection, combinedAuth, orderRoutes);
 app.use('/api/v1/data/inquiries', checkDatabaseConnection, combinedAuth, enquiryRoutes);
