@@ -111,10 +111,7 @@ app.use((req, res, next) => {
     'https://www.swanfinal-1.onrender.com',
     'https://swanfinal.onrender.com',
     'https://www.swanfinal.onrender.com',
-    'http://localhost:3000',
-    // Add netlify domains if you're using netlify
-    'https://swanfinal.netlify.app',
-    'https://swanfinal-1.netlify.app'
+    'http://localhost:3000'
   ];
   
   // Production debugging - log all request info
@@ -141,6 +138,10 @@ app.use((req, res, next) => {
   } else {
     // For development and testing with no origin
     res.setHeader('Access-Control-Allow-Origin', 'http://localhost:3000');
+    res.setHeader('Access-Control-Allow-Origin', 'https://swanfinal.onrender.com');
+    res.setHeader('Access-Control-Allow-Origin', 'https://www.swanfinal.onrender.com');
+    res.setHeader('Access-Control-Allow-Origin', 'https://swanfinal-1.onrender.com');
+    res.setHeader('Access-Control-Allow-Origin', 'https://www.swanfinal-1.onrender.com');
   }
   
   // Set other CORS headers - be explicit about allowed methods and headers
