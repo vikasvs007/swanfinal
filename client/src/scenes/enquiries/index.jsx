@@ -173,14 +173,14 @@ const Enquiries = () => {
       }
 
       const enquiryData = {
-        user_id: formData.user_id,
-        name: formData.name.trim(),
-        email: formData.email.trim(),
-        phone: formData.phone.trim(),
-        subject: formData.subject.trim(),
-        message: formData.message.trim(),
-        status: formData.status,
-        response: formData.response.trim(),
+        user_id: formData.user_id || undefined, // Handle empty string
+        name: formData.name?.trim() || "", // Safely handle undefined with optional chaining
+        email: formData.email?.trim() || "", // Required field
+        phone: formData.phone?.trim() || "", // Optional field
+        subject: formData.subject?.trim() || "", // Required field
+        message: formData.message?.trim() || "", // Required field
+        status: formData.status || "pending", // Default value
+        response: formData.response?.trim() || "", // Optional field
       };
 
       if (selectedEnquiry) {

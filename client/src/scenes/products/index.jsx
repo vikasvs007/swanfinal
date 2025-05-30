@@ -165,12 +165,20 @@ const Products = () => {
           name: formData.name,
           description: formData.description,
           price: Number(formData.price),
-          stock_quantity: Number(formData.stock_quantity),
+          stock: Number(formData.stock_quantity), // Map to 'stock' for server validation
           image_url: formData.image_url,
         };
         await updateProduct(updateData).unwrap();
       } else {
-        await createProduct(formData).unwrap();
+        // Map product data to match server-side validation requirements
+        const productData = {
+          name: formData.name,
+          description: formData.description,
+          price: Number(formData.price),
+          stock: Number(formData.stock_quantity), // Map to 'stock' for server validation
+          image_url: formData.image_url,
+        };
+        await createProduct(productData).unwrap();
       }
       setDialogOpen(false);
     } catch (error) {
