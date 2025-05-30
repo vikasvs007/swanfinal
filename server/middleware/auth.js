@@ -268,29 +268,12 @@ const combinedAuth = async (req, res, next) => {
     }
   }
   
-  // For production environment, ensure write operations work properly
+  // In production, POST, PUT, DELETE operations must be authenticated.
+  // The subsequent auth() or apiKeyAuth() calls will handle this.
+  // If they fail, the request will be rejected with a 401.
   if (process.env.NODE_ENV === 'production' && (req.method === 'POST' || req.method === 'PUT' || req.method === 'DELETE')) {
-    console.log(`[AUTH] Processing ${req.method} request for ${req.path} in production`);
-    
-    // Check if we have any form of authentication
-    if (authHeader || req.cookies.auth_token) {
-      console.log('[AUTH] Authentication credentials found, proceeding with validation');
-      // We'll continue with the authentication flow below
-    } else {
-      // No authentication provided, but we'll allow the request for now
-      console.log('[AUTH] No authentication provided, setting dummy auth');
-      
-      // Set a dummy authenticated user to allow operations
-      req.user = {
-        _id: 'system-user',
-        role: 'admin', // Give admin role to ensure operations succeed
-        name: 'System User',
-        email: 'system@example.com'
-      };
-      
-      req.isApiClient = true;
-      return next();
-    }
+    console.log(`[AUTH] Processing ${req.method} request for ${req.path} in production. Authentication will be enforced.`);
+    // If no authHeader and no cookie, the subsequent auth() call will likely fail, which is correct.
   }
   
   // Fall back to cookie authentication

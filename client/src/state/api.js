@@ -34,7 +34,7 @@ export const api = createApi({
       headers.set('Accept', 'application/json');
       
       // Add explicit CORS headers for preflight requests
-      headers.set('Access-Control-Request-Method', '*');
+      // headers.set('Access-Control-Request-Method', '*'); // Client should not set this, browser handles it for preflight
       
       // In production, always include authorization to ensure all methods work
       if (process.env.NODE_ENV === 'production') {
@@ -125,6 +125,10 @@ export const api = createApi({
           url: `v1/data/users/${id}/photo`,
           method: "POST",
           body: formData,
+          prepareHeaders: (headers) => {
+            headers.delete('Content-Type'); // Allow browser to set Content-Type for FormData
+            return headers;
+          },
         };
       },
       invalidatesTags: ["User"],
@@ -476,11 +480,8 @@ export const api = createApi({
           formData: true,
           // Remove content-type header so browser can set it with boundary for multipart/form-data
           prepareHeaders: (headers) => {
-            headers.delete('Content-Type');
-            // Always add authorization in production
-            if (process.env.NODE_ENV === 'production') {
-              headers.set('Authorization', 'Bearer development_token');
-            }
+            headers.delete('Content-Type'); // Allow browser to set Content-Type for FormData
+            // Authorization is handled by the global prepareHeaders
             return headers;
           },
         };
