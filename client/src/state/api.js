@@ -1,5 +1,45 @@
 import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
 
+/**
+ * Helper function to normalize and validate data for API mutations
+ * This ensures data is properly formatted for the backend validation
+ * @param {Object} data - The data to normalize
+ * @param {Object} options - Options for normalization
+ * @returns {Object} - Normalized data
+ */
+const normalizeMutationData = (data, options = {}) => {
+  // Make a copy to avoid mutating the original data
+  const normalized = {...data};
+  
+  // Process each field
+  Object.keys(normalized).forEach(key => {
+    const value = normalized[key];
+    
+    // Handle numeric conversions
+    if (options.numericFields?.includes(key)) {
+      normalized[key] = Number(value);
+    }
+    
+    // Handle string values - trim and ensure no undefined values are sent
+    if (typeof value === 'string') {
+      normalized[key] = value.trim() || "";
+    }
+    
+    // Remove empty values unless explicitly preserved
+    if (value === "" && !options.preserveEmpty) {
+      delete normalized[key];
+    }
+    
+    // Map field names if needed
+    if (options.fieldMapping && options.fieldMapping[key]) {
+      normalized[options.fieldMapping[key]] = normalized[key];
+      delete normalized[key];
+    }
+  });
+  
+  return normalized;
+};
+
 export const api = createApi({
   baseQuery: fetchBaseQuery({
     baseUrl: process.env.REACT_APP_BASE_URL || 'https://swanfinal.onrender.com/api',
@@ -187,19 +227,33 @@ export const api = createApi({
       },
     }),
     createBlog: build.mutation({
-      query: (data) => ({
-        url: "v1/data/blogs/posts/create",
-        method: "POST",
-        body: data,
-      }),
+      query: (data) => {
+        // Normalize data for server validation
+        const normalizedData = normalizeMutationData(data, {
+          preserveEmpty: true,
+        });
+        
+        return {
+          url: "v1/data/blogs/posts",
+          method: "POST",
+          body: normalizedData,
+        };
+      },
       invalidatesTags: ["Blogs"],
     }),
     updateBlog: build.mutation({
-      query: ({ id, ...data }) => ({
-        url: `v1/data/blogs/posts/update/${id}`,
-        method: "PUT",
-        body: data,
-      }),
+      query: ({ id, ...data }) => {
+        // Normalize data for server validation
+        const normalizedData = normalizeMutationData(data, {
+          preserveEmpty: true,
+        });
+        
+        return {
+          url: `v1/data/blogs/posts/update/${id}`, // Corrected URL path
+          method: "PUT",
+          body: normalizedData,
+        };
+      },
       invalidatesTags: (result, error, { id }) => [
         "Blogs",
         { type: "Blogs", id }
@@ -224,10 +278,16 @@ export const api = createApi({
     }),
     createProduct: build.mutation({
       query: (data) => {
+        // Normalize data for server validation
+        const normalizedData = normalizeMutationData(data, {
+          numericFields: ['price', 'stock_quantity', 'stock'],
+          fieldMapping: { stock_quantity: 'stock' }, // Map stock_quantity to stock to match server expectation
+        });
+        
         return {
           url: "v1/data/items",
           method: "POST",
-          body: data,
+          body: normalizedData, // Use normalized data
           // Add custom headers for this request
           prepareHeaders: (headers) => {
             // Always use API token in production
@@ -246,10 +306,16 @@ export const api = createApi({
     }),
     updateProduct: build.mutation({
       query: ({ id, ...data }) => {
+        // Normalize data for server validation
+        const normalizedData = normalizeMutationData(data, {
+          numericFields: ['price', 'stock_quantity', 'stock'],
+          fieldMapping: { stock_quantity: 'stock' }, // Map stock_quantity to stock to match server expectation
+        });
+        
         return {
           url: `v1/data/items/${id}`,
           method: "PUT",
-          body: data,
+          body: normalizedData, // Use normalized data
           // Add custom headers for this request
           prepareHeaders: (headers) => {
             // Always use API token in production
@@ -281,19 +347,25 @@ export const api = createApi({
     }),
     createOrder: build.mutation({
       query: (data) => {
+        // Normalize data for server validation
+        let normalizedData = normalizeMutationData(data, {
+          numericFields: ['total_amount', 'quantity', 'price'],
+          preserveEmpty: true,
+        });
+        
         // Ensure required fields are present
-        const orderData = {
-          ...data,
+        normalizedData = {
+          ...normalizedData,
           // Default values for required fields if not provided
-          total_amount: data.total_amount || 0,
-          order_number: data.order_number || `ORD-${Date.now()}`
+          total_amount: normalizedData.total_amount || 0,
+          order_number: normalizedData.order_number || `ORD-${Date.now()}`
         };
         
         // Build the request with proper authorization
         return {
           url: "v1/data/orders/create",
           method: "POST",
-          body: orderData,
+          body: normalizedData,
           // Add custom headers for this request
           prepareHeaders: (headers) => {
             // Always use API token in production
@@ -312,10 +384,16 @@ export const api = createApi({
     }),
     updateOrder: build.mutation({
       query: ({ id, data }) => {
+        // Normalize data for server validation
+        const normalizedData = normalizeMutationData(data, {
+          numericFields: ['total_amount', 'quantity', 'price'],
+          preserveEmpty: true,
+        });
+        
         return {
           url: `v1/data/orders/update/${id}`,
           method: "PUT",
-          body: data,
+          body: normalizedData,
           // Add custom headers for this request
           prepareHeaders: (headers) => {
             // Always use API token in production
@@ -346,19 +424,47 @@ export const api = createApi({
       providesTags: ["Enquiries"],
     }),
     createEnquiry: build.mutation({
-      query: (data) => ({
-        url: "v1/data/inquiries",
-        method: "POST",
-        body: data,
-      }),
+      query: (data) => {
+        // Normalize data for server validation
+        const normalizedData = normalizeMutationData(data, {
+          // Ensure all required fields have values
+          preserveEmpty: true, // Keep empty fields that should be preserved
+        });
+        
+        // Ensure required fields are present with proper values
+        normalizedData.name = normalizedData.name || "";
+        normalizedData.email = normalizedData.email || "";
+        normalizedData.subject = normalizedData.subject || "";
+        normalizedData.message = normalizedData.message || "";
+        
+        return {
+          url: "v1/data/inquiries",
+          method: "POST",
+          body: normalizedData,
+        };
+      },
       invalidatesTags: ["Enquiries"],
     }),
     updateEnquiry: build.mutation({
-      query: ({ id, ...data }) => ({
-        url: `v1/data/inquiries/${id}`,
-        method: "PUT",
-        body: data,
-      }),
+      query: ({ id, ...data }) => {
+        // Normalize data for server validation
+        const normalizedData = normalizeMutationData(data, {
+          // Ensure all required fields have values
+          preserveEmpty: true, // Keep empty fields that should be preserved
+        });
+        
+        // Ensure required fields are present with proper values
+        normalizedData.name = normalizedData.name || "";
+        normalizedData.email = normalizedData.email || "";
+        normalizedData.subject = normalizedData.subject || "";
+        normalizedData.message = normalizedData.message || "";
+        
+        return {
+          url: `v1/data/inquiries/${id}`,
+          method: "PUT",
+          body: normalizedData,
+        };
+      },
       invalidatesTags: ["Enquiries"],
     }),
     deleteEnquiry: build.mutation({
