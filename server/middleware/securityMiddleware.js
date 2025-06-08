@@ -179,10 +179,6 @@ const validateOrigin = (req, res, next) => {
   const allowedOrigins = [
     'https://admin.swansorter.com',
     'https://www.admin.swansorter.com',
-    'https://swanlogin.firebaseapp.com',
-    'https://www.swanlogin.firebaseapp.com',
-    'https://swanfinal.onrender.com',
-    'https://www.swanfinal.onrender.com',
     'https://swansorter.com',
     'https://www.swansorter.com',
     'https://swanfinal-1.onrender.com',

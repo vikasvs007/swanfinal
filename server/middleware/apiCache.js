@@ -30,9 +30,11 @@ const getCacheKey = (req) => {
  */
 const cacheMiddleware = (req, res, next) => {
   // Only cache GET requests
-  if (req.method !== 'GET') {
+  if (req.method !== 'GET') 
+    {
     return next();
   }
+  
   
   // Skip cache if requested
   if (req.headers['x-skip-cache'] === 'true') {

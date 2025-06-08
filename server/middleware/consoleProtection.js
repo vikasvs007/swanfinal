@@ -23,10 +23,7 @@ const consoleProtection = (req, res, next) => {
     // Check if referer is from allowed domains
     const allowedDomains = [
       'admin.swansorter.com',
-      'www.admin.swansorter.com',
-      'swanfinal-1.onrender.com',
-      'www.swanfinal-1.onrender.com',
-      'localhost:3000'
+      'www.admin.swansorter.com'
     ];
     
     const isAllowedReferer = allowedDomains.some(domain => 

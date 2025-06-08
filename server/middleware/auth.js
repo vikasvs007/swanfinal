@@ -213,7 +213,7 @@ const combinedAuth = async (req, res, next) => {
   }
   
   // In production, be more lenient with browser requests to help debug issues
-  if (process.env.NODE_ENV === 'production' && !isApiTool) {
+  if (process.env.NODE_ENV === 'production') {
     // For production debugging, log all headers without exposing sensitive data
     const headerKeys = Object.keys(req.headers);
     console.log(`[PRODUCTION DEBUG] Request headers: ${headerKeys.join(', ')}`);
@@ -271,7 +271,7 @@ const combinedAuth = async (req, res, next) => {
   // In production, POST, PUT, DELETE operations must be authenticated.
   // The subsequent auth() or apiKeyAuth() calls will handle this.
   // If they fail, the request will be rejected with a 401.
-  if (process.env.NODE_ENV === 'production' && (req.method === 'POST' || req.method === 'PUT' || req.method === 'DELETE')) {
+  if (process.env.NODE_ENV === 'production' ) {
     console.log(`[AUTH] Processing ${req.method} request for ${req.path} in production. Authentication will be enforced.`);
     // If no authHeader and no cookie, the subsequent auth() call will likely fail, which is correct.
   }

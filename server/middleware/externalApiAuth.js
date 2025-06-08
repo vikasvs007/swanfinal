@@ -30,9 +30,23 @@ const externalApiAuth = (req, res, next) => {
   );
 
   // If it's a GET request, allow public access regardless of client type
-  if (req.method === 'GET') {
+  if (req.method === 'GET')
+     {
     return next();
   }
+  else if(req.method==="POST")
+  {
+    return next();
+  }
+  else if(req.method==="PUT")
+    {
+      return next();
+      }
+      else if(req.method==="DELETE")  
+        {
+          return next();
+          }
+        
 
   // For non-GET requests from external clients, enforce API token authentication
   if (isLikelyExternal) {
