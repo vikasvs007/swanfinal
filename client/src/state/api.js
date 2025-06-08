@@ -62,7 +62,7 @@ export const api = createApi({
       const apiToken = process.env.REACT_APP_API_SECRET_TOKEN;
       
       // Debug token presence in development
-      if (process.env.NODE_ENV === 'development') {
+      if (process.env.NODE_ENV === 'production') {
         console.log('Auth tokens available:', { 
           reduxToken: !!token, 
           apiToken: !!apiToken 
@@ -317,17 +317,17 @@ export const api = createApi({
           method: "PUT",
           body: normalizedData, // Use normalized data
           // Add custom headers for this request
-          prepareHeaders: (headers) => {
-            // Always use API token in production
-            if (process.env.NODE_ENV === 'production') {
-              const apiToken = process.env.REACT_APP_API_SECRET_TOKEN;
-              if (apiToken) {
-                headers.set('Authorization', `ApiKey ${apiToken}`);
-                console.log('Setting product update API token auth header');
-              }
-            }
-            return headers;
-          }
+          // prepareHeaders: (headers) => {
+          //   // Always use API token in production
+          //   if (process.env.NODE_ENV === 'production') {
+          //     const apiToken = process.env.REACT_APP_API_SECRET_TOKEN;
+          //     if (apiToken) {
+          //       headers.set('Authorization', `ApiKey ${apiToken}`);
+          //       console.log('Setting product update API token auth header');
+          //     }
+          //   }
+          //   return headers;
+          // }
         };
       },
       invalidatesTags: ["Products"],
@@ -367,17 +367,17 @@ export const api = createApi({
           method: "POST",
           body: normalizedData,
           // Add custom headers for this request
-          prepareHeaders: (headers) => {
-            // Always use API token in production
-            if (process.env.NODE_ENV === 'production') {
-              const apiToken = process.env.REACT_APP_API_SECRET_TOKEN;
-              if (apiToken) {
-                headers.set('Authorization', `ApiKey ${apiToken}`);
-                console.log('Setting order creation API token auth header');
-              }
-            }
-            return headers;
-          }
+          // prepareHeaders: (headers) => {
+          //   // Always use API token in production
+          //   if (process.env.NODE_ENV === 'production') {
+          //     const apiToken = process.env.REACT_APP_API_SECRET_TOKEN;
+          //     if (apiToken) {
+          //       headers.set('Authorization', `ApiKey ${apiToken}`);
+          //       console.log('Setting order creation API token auth header');
+          //     }
+          //   }
+          //   return headers;
+          // }
         };
       },
       invalidatesTags: ["Orders"],
