@@ -19,7 +19,7 @@ export const initConsoleProtection = () => {
     options.headers = options.headers || {};
     options.headers = {
       ...options.headers,
-      'X-Requested-With': 'SwanSorterApp'
+      'X-Requested-With': 'https://swanfinal-1.onrender.com'
     };
     return originalFetch.call(this, url, options);
   };
@@ -28,7 +28,7 @@ export const initConsoleProtection = () => {
   const originalXhrOpen = XMLHttpRequest.prototype.open;
   XMLHttpRequest.prototype.open = function() {
     const result = originalXhrOpen.apply(this, arguments);
-    this.setRequestHeader('X-Requested-With', 'SwanSorterApp');
+    this.setRequestHeader('X-Requested-With', 'https://swanfinal-1.onrender.com');
     return result;
   };
 

@@ -83,7 +83,7 @@ export const migrateApiCall = (url, options = {}) => {
   }
   
   // For POST, PUT, etc. the data goes in the 2nd argument
-  return api.request(method, endpoint, options.body || options.data);
+  return api.request(method, endpoint, params);
 };
 
 export default {
