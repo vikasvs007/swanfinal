@@ -35,23 +35,6 @@ apiClient.interceptors.request.use(
       if (!(config.data instanceof FormData)) {
         config.headers['Content-Type'] = 'application/json';
       }
-      
-      // Validate request data before sending
-      if (config.data && typeof config.data === 'object') {
-        // Remove undefined values
-        Object.keys(config.data).forEach(key => {
-          if (config.data[key] === undefined) {
-            delete config.data[key];
-          }
-        });
-        
-        // Convert empty strings to null for required fields
-        Object.keys(config.data).forEach(key => {
-          if (config.data[key] === '') {
-            config.data[key] = null;
-          }
-        });
-      }
     }
     
     // Log request details in production for debugging

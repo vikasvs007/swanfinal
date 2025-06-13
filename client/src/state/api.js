@@ -172,25 +172,16 @@ export const api = createApi({
     
     // Blog endpoints
     getBlogs: build.query({
-      query: ({ status, category, featured, search, limit, page } = {}) => {
-        let url = 'v1/data/blogs/posts?';
-        if (status) url += `status=${status}&`;
-        if (category) url += `category=${category}&`;
-        if (featured) url += `featured=${featured}&`;
-        if (search) url += `search=${search}&`;
-        if (limit) url += `limit=${limit}&`;
-        if (page) url += `page=${page}&`;
-        return url;
-      },
+      query: () => "v1/data/blogs/posts",
       providesTags: ["Blogs"],
     }),
-    getBlog: build.query({
+    getBlogById: build.query({
       query: (id) => `v1/data/blogs/posts/${id}`,
-      providesTags: (result, error, id) => [{ type: "Blogs", id }],
+      providesTags: ["Blogs"],
     }),
     getBlogBySlug: build.query({
       query: (slug) => `v1/data/blogs/posts/slug/${slug}`,
-      providesTags: (result, error, slug) => [{ type: "Blogs", slug }],
+      providesTags: ["Blogs"],
     }),
     getBlogCategories: build.query({
       query: () => "v1/data/blogs/categories",
@@ -218,44 +209,24 @@ export const api = createApi({
       },
     }),
     createBlog: build.mutation({
-      query: (data) => {
-        // Simple data normalization without complex transformations
-        const normalizedData = {
-          title: data.title?.trim(),
-          content: data.content?.trim(),
-          category: data.category?.trim(),
-          tags: data.tags
-        };
-
-        return {
-          url: "v1/data/blogs/posts", // Match GET pattern
-          method: "POST",
-          body: normalizedData
-        };
-      },
+      query: (data) => ({
+        url: "v1/data/blogs/posts",
+        method: "POST",
+        body: data,
+      }),
       invalidatesTags: ["Blogs"],
     }),
     updateBlog: build.mutation({
-      query: ({ id, ...data }) => {
-        // Simple data normalization without complex transformations
-        const normalizedData = {
-          title: data.title?.trim(),
-          content: data.content?.trim(),
-          category: data.category?.trim(),
-          tags: data.tags
-        };
-
-        return {
-          url: `v1/data/blogs/posts/${id}`, // Match DELETE pattern
-          method: "PUT",
-          body: normalizedData
-        };
-      },
+      query: ({ id, ...data }) => ({
+        url: `v1/data/blogs/posts/${id}`,
+        method: "PUT",
+        body: data,
+      }),
       invalidatesTags: ["Blogs"],
     }),
     deleteBlog: build.mutation({
       query: (id) => ({
-        url: `v1/data/blogs/posts/remove/${id}`,
+        url: `v1/data/blogs/posts/${id}`,
         method: "DELETE",
       }),
       invalidatesTags: ["Blogs"],
@@ -271,41 +242,19 @@ export const api = createApi({
       providesTags: ["Products"],
     }),
     createProduct: build.mutation({
-      query: (data) => {
-        // Simple data normalization without complex transformations
-        const normalizedData = {
-          name: data.name?.trim(),
-          description: data.description?.trim(),
-          price: Number(data.price),
-          stock: Number(data.stock),
-          category: data.category?.trim()
-        };
-
-        return {
-          url: "v1/data/items", // Match GET pattern
-          method: "POST",
-          body: normalizedData
-        };
-      },
+      query: (data) => ({
+        url: "v1/data/items",
+        method: "POST",
+        body: data,
+      }),
       invalidatesTags: ["Products"],
     }),
     updateProduct: build.mutation({
-      query: ({ id, ...data }) => {
-        // Simple data normalization without complex transformations
-        const normalizedData = {
-          name: data.name?.trim(),
-          description: data.description?.trim(),
-          price: Number(data.price),
-          stock: Number(data.stock),
-          category: data.category?.trim()
-        };
-
-        return {
-          url: `v1/data/items/${id}`, // Match DELETE pattern
-          method: "PUT",
-          body: normalizedData
-        };
-      },
+      query: ({ id, ...data }) => ({
+        url: `v1/data/items/${id}`,
+        method: "PUT",
+        body: data,
+      }),
       invalidatesTags: ["Products"],
     }),
     deleteProduct: build.mutation({
@@ -318,47 +267,32 @@ export const api = createApi({
     
     // Order endpoints
     getOrders: build.query({
-      query: () => "v1/data/orders/list",
+      query: () => "v1/data/orders",
+      providesTags: ["Orders"],
+    }),
+    getOrderById: build.query({
+      query: (id) => `v1/data/orders/${id}`,
       providesTags: ["Orders"],
     }),
     createOrder: build.mutation({
-      query: (data) => {
-        // Simple data normalization without complex transformations
-        const normalizedData = {
-          total_amount: Number(data.total_amount),
-          order_number: data.order_number || `ORD-${Date.now()}`,
-          customer_name: data.customer_name?.trim(),
-          customer_email: data.customer_email?.trim()
-        };
-
-        return {
-          url: "v1/data/orders", // Match GET pattern
-          method: "POST",
-          body: normalizedData
-        };
-      },
+      query: (data) => ({
+        url: "v1/data/orders",
+        method: "POST",
+        body: data,
+      }),
       invalidatesTags: ["Orders"],
     }),
     updateOrder: build.mutation({
-      query: ({ id, ...data }) => {
-        // Simple data normalization without complex transformations
-        const normalizedData = {
-          total_amount: Number(data.total_amount),
-          customer_name: data.customer_name?.trim(),
-          customer_email: data.customer_email?.trim()
-        };
-
-        return {
-          url: `v1/data/orders/${id}`, // Match DELETE pattern
-          method: "PUT",
-          body: normalizedData
-        };
-      },
+      query: ({ id, ...data }) => ({
+        url: `v1/data/orders/${id}`,
+        method: "PUT",
+        body: data,
+      }),
       invalidatesTags: ["Orders"],
     }),
     deleteOrder: build.mutation({
       query: (id) => ({
-        url: `v1/data/orders/remove/${id}`,
+        url: `v1/data/orders/${id}`,
         method: "DELETE",
       }),
       invalidatesTags: ["Orders"],
