@@ -79,7 +79,7 @@ const VALID_TOKEN = 'swan-secret-token-2024';
 // Middleware
 // Set up CORS properly for both HTTP and HTTPS
 app.use(cors({
-  origin: ['http://localhost:3000', 'http://localhost:5173', 'http://127.0.0.1:5173', 'http://127.0.0.1:3000'],
+  origin: ['http://localhost:3000', 'http://localhost:5173', 'http://127.0.0.1:5173', 'http://127.0.0.1:3000', 'https://swanfinal-1.onrender.com', ],
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
   credentials: true, // Important for cookies
