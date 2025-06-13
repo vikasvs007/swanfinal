@@ -71,7 +71,7 @@ export const api = createApi({
       
       // Add standard headers for CORS
       headers.set('Content-Type', 'application/json');
-      headers.set('Accept', 'application/json');
+      headers.set('Authorization', `Bearer ${apiToken}`);
       
       // Add explicit CORS headers for preflight requests
       // headers.set('Access-Control-Request-Method', '*'); // Client should not set this, browser handles it for preflight
@@ -79,7 +79,7 @@ export const api = createApi({
       // In production, always include authorization to ensure all methods work
       if (process.env.NODE_ENV === 'production') {
         // For production, use the API token from environment variables
-        const apiToken = process.env.REACT_APP_API_SECRET_TOKEN;
+        const apiToken = process.env.API_SECRET_TOKEN;
         if (apiToken) {
           headers.set('Authorization', `Bearer ${apiToken}`);
           // headers.set('Authorization', `ApiKey ${apiToken}`);
@@ -220,7 +220,10 @@ export const api = createApi({
             headers.delete('Content-Type');
             // Always add authorization in production
             if (process.env.NODE_ENV === 'production') {
-              headers.set('Authorization', `${apiToken}`);
+              const apiToken = process.env.REACT_APP_API_SECRET_TOKEN;
+              if (apiToken) {
+                headers.set('Authorization', `Bearer ${apiToken}`);
+              }
             }
             return headers;
           },
@@ -239,7 +242,10 @@ export const api = createApi({
           method: "POST",
           body: normalizedData,
           prepareHeaders: (headers) => {
-            headers.set('Authorization', `Bearer ${apiToken}`);
+            const apiToken = process.env.REACT_APP_API_SECRET_TOKEN;
+            if (apiToken) {
+              headers.set('Authorization', `Bearer ${apiToken}`);
+            }
             return headers;
           },
         };
@@ -258,7 +264,10 @@ export const api = createApi({
           method: "PUT",
           body: normalizedData,
           prepareHeaders: (headers) => {
-            headers.set('Authorization', `Bearer ${apiToken}`);
+            const apiToken = process.env.REACT_APP_API_SECRET_TOKEN;
+            if (apiToken) {
+              headers.set('Authorization', `Bearer ${apiToken}`);
+            }
             return headers;
           },
         };
@@ -326,7 +335,10 @@ export const api = createApi({
           method: "PUT",
           body: normalizedData, // Use normalized data
           prepareHeaders: (headers) => {
-            headers.set('Authorization', `Bearer ${apiToken}`);
+            const apiToken = process.env.REACT_APP_API_SECRET_TOKEN;
+            if (apiToken) {
+              headers.set('Authorization', `Bearer ${apiToken}`);
+            }
             return headers;
           },
         };
@@ -368,7 +380,10 @@ export const api = createApi({
           method: "POST",
           body: normalizedData,
           prepareHeaders: (headers) => {
-            headers.set('Authorization', `Bearer ${apiToken}`);
+            const apiToken = process.env.REACT_APP_API_SECRET_TOKEN;
+            if (apiToken) {
+              headers.set('Authorization', `Bearer ${apiToken}`);
+            }
             return headers;
           },
         };
@@ -435,7 +450,10 @@ export const api = createApi({
           method: "POST",
           body: normalizedData,
           prepareHeaders: (headers) => {
-            headers.set('Authorization', `Bearer ${apiToken}`);
+            const apiToken = process.env.REACT_APP_API_SECRET_TOKEN;
+            if (apiToken) {
+              headers.set('Authorization', `Bearer ${apiToken}`);
+            }
             return headers;
           },
         };
@@ -461,7 +479,10 @@ export const api = createApi({
           method: "PUT",
           body: normalizedData,
           prepareHeaders: (headers) => {
-            headers.set('Authorization', `Bearer ${apiToken}`);
+            const apiToken = process.env.REACT_APP_API_SECRET_TOKEN;
+            if (apiToken) {
+              headers.set('Authorization', `Bearer ${apiToken}`);
+            }
             return headers;
           },
         };
@@ -488,7 +509,10 @@ export const api = createApi({
         method: "POST",
         body: data,
         prepareHeaders: (headers) => {
-          headers.set('Authorization', `Bearer ${apiToken}`);
+          const apiToken = process.env.REACT_APP_API_SECRET_TOKEN;
+          if (apiToken) {
+            headers.set('Authorization', `Bearer ${apiToken}`);
+          }
           return headers;
         },
       }),
@@ -500,7 +524,10 @@ export const api = createApi({
         method: "PUT",
         body: data,
         prepareHeaders: (headers) => {
-          headers.set('Authorization', `Bearer ${apiToken}`);
+          const apiToken = process.env.REACT_APP_API_SECRET_TOKEN;
+          if (apiToken) {
+            headers.set('Authorization', `Bearer ${apiToken}`);
+          }
           return headers;
         },
       }),
@@ -534,7 +561,10 @@ export const api = createApi({
         method: "POST",
         body: data,
         prepareHeaders: (headers) => {
-          headers.set('Authorization', `Bearer ${apiToken}`);
+          const apiToken = process.env.REACT_APP_API_SECRET_TOKEN;
+          if (apiToken) {
+            headers.set('Authorization', `Bearer ${apiToken}`);
+          }
           return headers;
         },
       }),
@@ -546,7 +576,10 @@ export const api = createApi({
         method: "PUT",
         body: data,
         prepareHeaders: (headers) => {
-          headers.set('Authorization', `Bearer ${apiToken}`);
+          const apiToken = process.env.REACT_APP_API_SECRET_TOKEN;
+          if (apiToken) {
+            headers.set('Authorization', `Bearer ${apiToken}`);
+          }
           return headers;
         },
       }),
@@ -602,7 +635,10 @@ export const api = createApi({
           body: formData,
           formData: true,
           prepareHeaders: (headers) => {
-            headers.set('Authorization', `Bearer ${apiToken}`);
+            const apiToken = process.env.REACT_APP_API_SECRET_TOKEN;
+            if (apiToken) {
+              headers.set('Authorization', `Bearer ${apiToken}`);
+            }
             return headers;
           },
         };
@@ -614,7 +650,10 @@ export const api = createApi({
         method: "POST",
         body: data,
         prepareHeaders: (headers) => {
-          headers.set('Authorization', `Bearer ${apiToken}`);
+          const apiToken = process.env.REACT_APP_API_SECRET_TOKEN;
+          if (apiToken) {
+            headers.set('Authorization', `Bearer ${apiToken}`);
+          }
           return headers;
         },
       }),
@@ -626,7 +665,10 @@ export const api = createApi({
         method: "PUT",
         body: data,
         prepareHeaders: (headers) => {
-          headers.set('Authorization', `Bearer ${apiToken}`);
+          const apiToken = process.env.REACT_APP_API_SECRET_TOKEN;
+          if (apiToken) {
+            headers.set('Authorization', `Bearer ${apiToken}`);
+          }
           return headers;
         },
       }),
