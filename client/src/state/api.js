@@ -57,25 +57,32 @@ export const api = createApi({
       // Get token from Redux state
       const token = getState().global?.token;
       
-      // Use API token from environment variables
+      // Use API token directly from environment for now for simplicity
+      // In production, this should be obtained securely from the server
       const apiToken = process.env.REACT_APP_API_SECRET_TOKEN;
       
       // Debug token presence in development
       if (process.env.NODE_ENV === 'production') {
         console.log('Auth tokens available:', { 
           reduxToken: !!token, 
-          apiToken: !!apiToken,
-          baseUrl: process.env.REACT_APP_BASE_URL || 'https://swanfinal.onrender.com/api'
+          apiToken: !!apiToken 
         });
       }
       
       // Add standard headers for CORS
       headers.set('Content-Type', 'application/json');
+      headers.set('Authorization', `Bearer ${apiToken}`);
+      
+      // Add explicit CORS headers for preflight requests
+      // headers.set('Access-Control-Request-Method', '*'); // Client should not set this, browser handles it for preflight
       
       // In production, always include authorization to ensure all methods work
       if (process.env.NODE_ENV === 'production') {
+        // For production, use the API token from environment variables
+        const apiToken = process.env.API_SECRET_TOKEN;
         if (apiToken) {
           headers.set('Authorization', `Bearer ${apiToken}`);
+          // headers.set('Authorization', `ApiKey ${apiToken}`);
           console.log('Setting API key auth header for production');
         } else {
           console.warn('API token not available in production environment');
@@ -83,7 +90,7 @@ export const api = createApi({
       }
       // Otherwise use the API token if available
       else if (apiToken) {
-        headers.set('Authorization', `Bearer ${apiToken}`);
+        headers.set('Authorization', `ApiKey ${apiToken}`);
       } else if (token) {
         // Fallback to JWT token if no API token is available
         headers.set('Authorization', `Bearer ${token}`);

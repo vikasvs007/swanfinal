@@ -1,6 +1,7 @@
 import React from "react";
 import {
   Box,
+  Divider,
   Drawer,
   IconButton,
   List,
@@ -10,18 +11,24 @@ import {
   ListItemText,
   Typography,
   useTheme,
+  Tooltip,
 } from "@mui/material";
 import {
   ChevronLeft,
   ChevronRightOutlined,
   HomeOutlined,
   ShoppingCartOutlined,
+  Groups2Outlined,
   ReceiptLongOutlined,
   QueryStatsOutlined,
+  NotificationsOutlined,
   PersonOutlined,
   CalendarTodayOutlined,
+  AdminPanelSettingsOutlined,
   TrendingUpOutlined,
+  PieChartOutlined,
   PublicOutlined,
+  LogoutOutlined,
   ArticleOutlined,
   NewspaperOutlined,
   CategoryOutlined,
@@ -29,6 +36,8 @@ import {
 } from "@mui/icons-material";
 import { useEffect, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
+import { useDispatch } from "react-redux";
+import { setUser } from "state";
 import FlexBetween from "./FlexBetween";
 
 const navItems = [
@@ -96,6 +105,10 @@ const navItems = [
     text: "User Statistics",
     icon: <TrendingUpOutlined />,
   },
+  // {
+  //   text: "Notifications",
+  //   icon: <NotificationsOutlined />,
+  // },
 ];
 
 const Sidebar = ({
@@ -109,10 +122,22 @@ const Sidebar = ({
   const [active, setActive] = useState("");
   const navigate = useNavigate();
   const theme = useTheme();
+  const dispatch = useDispatch();
 
   useEffect(() => {
     setActive(pathname.substring(1));
   }, [pathname]);
+
+  const handleLogout = () => {
+    // Clear user data from Redux store
+    dispatch(setUser(null));
+    
+    // Remove authentication from localStorage
+    localStorage.removeItem('isAuthenticated');
+    
+    // Redirect to login page
+    navigate("/login");
+  };
 
   return (
     <Box component="nav">
@@ -258,6 +283,57 @@ const Sidebar = ({
               })}
             </List>
           </Box>
+
+          {/* Profile section at bottom */}
+          {/* <Box position="absolute" bottom="2rem">
+            <Divider />
+            <FlexBetween textTransform="none" gap="1rem" m="1.5rem 2rem 0 3rem"> */}
+              {/* <Box
+                component="img"
+                alt="profile"
+                src={user?.photo}
+                height="40px"
+                width="40px"
+                borderRadius="50%"
+                sx={{ objectFit: "cover" }}
+              /> */}
+              {/* <Box textAlign="left">
+                <Typography
+                  fontWeight="bold"
+                  fontSize="0.9rem"
+                  sx={{ color: theme.palette.secondary[100] }}
+                >
+                  {user?.name}
+                </Typography>
+                <Typography
+                  fontSize="0.8rem"
+                  sx={{ color: theme.palette.secondary[200] }}
+                >
+                  {user?.role}
+                </Typography>
+              </Box> */}
+              {/* <Tooltip title="Profile Settings">
+                <IconButton onClick={() => navigate("/profile")}>
+                  <AdminPanelSettingsOutlined
+                    sx={{
+                      color: theme.palette.secondary[300],
+                      fontSize: "25px",
+                    }}
+                  />
+                </IconButton>
+              </Tooltip> */}
+              {/* <Tooltip title="Logout">
+                <IconButton 
+                  onClick={handleLogout}
+                  sx={{
+                    color: theme.palette.error.light,
+                  }}
+                >
+                  <LogoutOutlined fontSize="medium" />
+                </IconButton>
+              </Tooltip> */}
+            {/* </FlexBetween>
+          </Box> */}
         </Drawer>
       )}
     </Box>

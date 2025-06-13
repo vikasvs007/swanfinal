@@ -16,20 +16,33 @@ import {
   Chip,
   IconButton,
   InputAdornment,
+  Autocomplete,
+  Stack,
+  InputLabel,
+  Select,
+  FormControl,
+  FormHelperText,
 } from "@mui/material";
 import {
   AddPhotoAlternate as ImageIcon,
   Add as AddIcon,
   Clear as ClearIcon,
+  Close as CloseIcon,
+  DeleteOutline as DeleteIcon,
 } from "@mui/icons-material";
-import { useCreateBlogMutation, useUpdateBlogMutation } from "state/api";
+import { useCreateBlogMutation, useUpdateBlogMutation, useGetBlogCategoriesQuery } from "state/api";
+import { formatImageUrl } from "utils/helpers";
 
 const BlogForm = ({ open, onClose, blog = null, isEdit = false }) => {
   const theme = useTheme();
+  // Get API base URL from environment or fallback
+  const apiBaseUrl = process.env.REACT_APP_BASE_URL?.replace('/api', '') || "https://swanbackend.onrender.com";
   
   const [createBlog, { isLoading: isCreating }] = useCreateBlogMutation();
   const [updateBlog, { isLoading: isUpdating }] = useUpdateBlogMutation();
+  const { data: categories } = useGetBlogCategoriesQuery();
 
+  const isLoading = isCreating || isUpdating;
   const [error, setError] = useState(null);
   const fileInputRef = useRef(null);
   const [isProcessing, setIsProcessing] = useState(false);
@@ -239,6 +252,31 @@ const BlogForm = ({ open, onClose, blog = null, isEdit = false }) => {
       console.error('Error handling file:', error);
       setError('An unexpected error occurred. Please try again.');
       setIsProcessing(false);
+    }
+  };
+
+  // Helper function to detect transparency in images
+  const hasTransparency = (image) => {
+    try {
+      // Create a small canvas to test for transparency
+      const canvas = document.createElement('canvas');
+      canvas.width = Math.min(image.width, 100); // Sample a portion of the image
+      canvas.height = Math.min(image.height, 100);
+      
+      const ctx = canvas.getContext('2d');
+      ctx.drawImage(image, 0, 0, canvas.width, canvas.height);
+      
+      // Get image data and check for non-opaque pixels
+      const data = ctx.getImageData(0, 0, canvas.width, canvas.height).data;
+      for (let i = 3; i < data.length; i += 4) {
+        if (data[i] < 255) { // Check alpha channel
+          return true;
+        }
+      }
+      return false;
+    } catch (e) {
+      console.error('Error checking for transparency:', e);
+      return false; // Default to no transparency if there's an error
     }
   };
 
@@ -592,8 +630,8 @@ const BlogForm = ({ open, onClose, blog = null, isEdit = false }) => {
           onClick={handleSubmit} 
           color="primary"
           variant="contained"
-          disabled={isCreating || isUpdating}
-          startIcon={(isCreating || isUpdating) ? <CircularProgress size={20} /> : null}
+          disabled={isProcessing}
+          startIcon={isProcessing ? <CircularProgress size={20} /> : null}
           sx={{
             backgroundImage: theme.palette.background.gradient,
             color: theme.palette.text.light,
@@ -602,7 +640,7 @@ const BlogForm = ({ open, onClose, blog = null, isEdit = false }) => {
             }
           }}
         >
-          {(isCreating || isUpdating) ? "Saving..." : isEdit ? "Update" : "Create"}
+          {isProcessing ? "Saving..." : isEdit ? "Update" : "Create"}
         </Button>
       </DialogActions>
     </Dialog>

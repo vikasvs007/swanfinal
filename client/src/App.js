@@ -9,6 +9,7 @@ import React from "react";
 import { initializeSecureStorage } from './utils/cleanStorage';
 import { isAuthenticated, getCurrentUser } from './utils/auth';
 import ApiTokenInitializer from './components/ApiTokenInitializer';
+import { setApiToken } from './utils/authUtils';
 import { initConsoleProtection, detectDevTools } from './utils/consoleProtection';
 
 import Layout from "scenes/layout";
@@ -31,6 +32,18 @@ import News from "scenes/news";
 import Categories from "scenes/categories";
 import Cards from "scenes/cards";
 import NotFound from "scenes/NotFound";
+
+// Protected route component that redirects to login if not authenticated
+const ProtectedRoute = ({ children }) => {
+  const isLoggedIn = isAuthenticated();
+  const user = useSelector((state) => state.global.user);
+  
+  if (!isLoggedIn && !user) {
+    return <Navigate to="/login" replace />;
+  }
+  
+  return children;
+};
 
 function App() {
   // Create theme with light mode only
