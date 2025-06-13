@@ -3,14 +3,12 @@ import {
   Menu as MenuIcon,
   Search,
   ArrowDropDownOutlined,
-  Person as PersonIcon,
-  Settings as SettingsIcon,
   Logout as LogoutIcon,
   AdminPanelSettings as AdminIcon,
 } from "@mui/icons-material";
 import FlexBetween from "components/FlexBetween";
 import { useDispatch } from "react-redux";
-import { setUser, logout } from "state";
+import { logout } from "state";
 import {
   AppBar,
   Button,
@@ -25,7 +23,6 @@ import {
   Avatar,
   Divider,
   ListItemIcon,
-  Tooltip,
 } from "@mui/material";
 import { useNavigate } from "react-router-dom";
 import NotificationBell from "components/NotificationBell";
@@ -40,16 +37,6 @@ const Navbar = ({ user, isSidebarOpen, setIsSidebarOpen }) => {
   const isOpen = Boolean(anchorEl);
   const handleClick = (event) => setAnchorEl(event.currentTarget);
   const handleClose = () => setAnchorEl(null);
-
-  const handleProfileClick = () => {
-    handleClose();
-    navigate("/profile");
-  };
-
-  const handleAccountClick = () => {
-    handleClose();
-    navigate("/account-settings");
-  };
 
   const handleLogout = () => {
     handleClose();
@@ -259,34 +246,6 @@ const Navbar = ({ user, isSidebarOpen, setIsSidebarOpen }) => {
                 </FlexBetween>
               </Box>
               <Divider sx={{ my: 1 }} />
-              {/* <MenuItem onClick={handleProfileClick} sx={{
-                borderRadius: "8px",
-                mx: 1,
-                my: 0.5,
-                '&:hover': {
-                  background: theme.palette.background.gradient,
-                  color: "#fff"
-                }
-              }}> */}
-                {/* <ListItemIcon>
-                  <PersonIcon fontSize="small" color={theme.palette.secondary[700]} />
-                </ListItemIcon>
-                Profile */}
-              {/* </MenuItem>
-              <MenuItem onClick={handleAccountClick} sx={{
-                borderRadius: "8px",
-                mx: 1,
-                my: 0.5,
-                '&:hover': {
-                  background: theme.palette.background.gradient,
-                  color: "#fff"
-                }
-              }}> */}
-                {/* <ListItemIcon>
-                  <SettingsIcon fontSize="small" color={theme.palette.secondary[700]} />
-                </ListItemIcon>
-                Account Settings */}
-              {/* </MenuItem> */}
               <MenuItem onClick={handleLogout} sx={{
                 borderRadius: "8px",
                 mx: 1,
