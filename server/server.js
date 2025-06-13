@@ -111,44 +111,37 @@ app.use((req, res, next) => {
     'https://www.swanfinal-1.onrender.com',
     'https://swanfinal.onrender.com',
     'https://www.swanfinal.onrender.com',
-    'http://localhost:3000',
-    'https://swanfinal-1.onrender.com',
-    'https://admin.swansort.com',
-    'https://www.admin.swansort.com',
-    'https://swansorter.com',
-    'https://www.swansorter.com',
-    process.env.FRONTEND_URL // Allow dynamic frontend URL from environment
-  ].filter(Boolean); // Remove any undefined/null values
+    'http://localhost:3000'
+  ];
   
   // Production debugging - log all request info
   if (process.env.NODE_ENV === 'production') {
-    console.log(`[CORS Debug] Allowed Origins:`, allowedOrigins);
-    console.log(`[CORS Debug] Frontend URL from env:`, process.env.FRONTEND_URL);
+    console.log(`[CORS Debug] Full request info:`);
+    console.log(`- Method: ${req.method}`);
+    console.log(`- Path: ${req.path}`);
+    console.log(`- Origin: ${origin}`);
+    console.log(`- Host: ${req.headers.host}`);
+    console.log(`- User-Agent: ${req.headers['user-agent']}`);
   }
   
   // In both production and development, properly handle CORS
   if (origin) {
-    // Check if origin is in allowed list
-    if (allowedOrigins.includes(origin)) {
-      res.setHeader('Access-Control-Allow-Origin', origin);
-      res.setHeader('Access-Control-Allow-Credentials', 'true');
-      if (process.env.NODE_ENV === 'production') {
-        console.log(`[CORS] Allowed request from origin: ${origin}`);
-      }
-    } else {
-      console.warn(`[CORS] Blocked request from unauthorized origin: ${origin}`);
-      return res.status(403).json({ 
-        error: 'CORS not allowed',
-        message: 'Request from unauthorized origin'
-      });
-    }
+    // If origin is provided, set it explicitly (required for credentials: 'include')
+    res.setHeader('Access-Control-Allow-Origin', origin);
+    // Important: When using credentials, Access-Control-Allow-Origin cannot be '*'
+    res.setHeader('Access-Control-Allow-Credentials', 'true');
   } else if (process.env.NODE_ENV === 'production') {
     // In production, be more permissive if no origin is provided
+    // This isn't ideal for security but helps with compatibility
     res.setHeader('Access-Control-Allow-Origin', '*');
     console.log('[CORS] No origin in request, using * wildcard for CORS');
   } else {
     // For development and testing with no origin
     res.setHeader('Access-Control-Allow-Origin', 'http://localhost:3000');
+    res.setHeader('Access-Control-Allow-Origin', 'https://swanfinal.onrender.com');
+    res.setHeader('Access-Control-Allow-Origin', 'https://www.swanfinal.onrender.com');
+    res.setHeader('Access-Control-Allow-Origin', 'https://swanfinal-1.onrender.com');
+    res.setHeader('Access-Control-Allow-Origin', 'https://www.swanfinal-1.onrender.com');
   }
   
   // Set other CORS headers - be explicit about allowed methods and headers
@@ -283,12 +276,42 @@ app.use('/uploads', (req, res, next) => {
   next();
 }, express.static(path.join(__dirname, 'uploads')));
 
+// Add a database check middleware for API routes
+const checkDatabaseConnection = (req, res, next) => {
+  if (mongoose.connection.readyState !== 1) {
+    return res.status(503).json({
+      message: 'Database connection is not established. Please try again later.'
+    });
+  }
+  next();
+};
+
 // Database connection
 connectToDatabase()
   .then(connected => {
     if (!connected) {
       console.error('Failed to establish database connection. Server will continue but database operations may fail.');
     }
+    
+    // Mount routes after database connection is established
+    app.use('/api/v1/auth', checkDatabaseConnection, authRoutes);
+    app.use('/api/v1/data/users', checkDatabaseConnection, combinedAuth, userRoutes);
+    app.use('/api/v1/data/products', checkDatabaseConnection, productRoutes);
+    app.use('/api/v1/data/orders', checkDatabaseConnection, combinedAuth, orderRoutes);
+    app.use('/api/v1/data/inquiries', checkDatabaseConnection, combinedAuth, enquiryRoutes);
+    app.use('/api/v1/data/notifications', checkDatabaseConnection, combinedAuth, notificationRoutes);
+    app.use('/api/v1/data/active-users', checkDatabaseConnection, combinedAuth, activeUserRoutes);
+    app.use('/api/v1/data/visitors', checkDatabaseConnection, combinedAuth, visitorRoutes);
+    app.use('/api/v1/data/user-statistics', checkDatabaseConnection, combinedAuth, userStatisticsRoutes);
+    app.use('/api/v1/data/blogs', checkDatabaseConnection, combinedAuth, blogRoutes);
+    app.use('/api/v1/data/cards', checkDatabaseConnection, combinedAuth, cardRoutes);
+    
+    // Start the server after routes are mounted
+    const PORT = process.env.PORT || 5000;
+    app.listen(PORT, () => {
+      console.log(`Server is running on port ${PORT} in ${process.env.NODE_ENV || 'development'} mode`);
+      console.log(`API available at: http://localhost:${PORT}/api`);
+    });
   })
   .catch(err => {
     console.error('Error during database connection setup:', err);
@@ -303,31 +326,6 @@ app.get('/', (req, res) => {
  
   });
 });
-
-// Add a database check middleware for API routes
-const checkDatabaseConnection = (req, res, next) => {
-  if (mongoose.connection.readyState !== 1) {
-    return res.status(503).json({
-      message: 'Database connection is not established. Please try again later.'
-    });
-  }
-  next();
-};
-
-// API routes with database connection check
-app.use('/api/v1/auth', checkDatabaseConnection, authRoutes);
-app.use('/api/v1/data/users', checkDatabaseConnection, combinedAuth, userRoutes);
-
-// Add route for v1/data/items (products)
-app.use('/api/v1/data/items', checkDatabaseConnection, combinedAuth, productRoutes);
-app.use('/api/v1/data/orders', checkDatabaseConnection, combinedAuth, orderRoutes);
-app.use('/api/v1/data/inquiries', checkDatabaseConnection, combinedAuth, enquiryRoutes);
-app.use('/api/v1/data/notifications', checkDatabaseConnection, combinedAuth, notificationRoutes);
-app.use('/api/v1/data/active-users', checkDatabaseConnection, combinedAuth, activeUserRoutes);
-app.use('/api/v1/data/visitors', checkDatabaseConnection, combinedAuth, visitorRoutes);
-app.use('/api/v1/data/user-statistics', checkDatabaseConnection, combinedAuth, userStatisticsRoutes);
-app.use('/api/v1/data/blogs', checkDatabaseConnection, combinedAuth, blogRoutes);
-app.use('/api/v1/data/cards', checkDatabaseConnection, combinedAuth, cardRoutes);
 
 // Legacy routes for backward compatibility - will log deprecation warnings
 // These can be removed once frontend is fully updated
@@ -432,13 +430,4 @@ process.on('unhandledRejection', (reason, promise) => {
   if (process.env.NODE_ENV !== 'production') {
     // Optional: process.exit(1);
   }
-});
-
-// Start server
-const PORT = process.env.PORT || 5000;
-
-// For production environments where SSL is handled by proxy (like Hostinger)
-app.listen(PORT, () => {
-  console.log(`Server is running on port ${PORT} in ${process.env.NODE_ENV || 'development'} mode`);
-  console.log(`API available at: http://localhost:${PORT}/api`);
 });

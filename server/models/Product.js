@@ -4,10 +4,7 @@ const mongoose = require('mongoose');
 const productSchema = new mongoose.Schema({
   name: {
     type: String,
-    required: function() {
-      // Only required in production mode
-      return process.env.NODE_ENV === 'production';
-    },
+    required: process.env.NODE_ENV === 'production',
     default: 'Untitled Product' // Fallback for development
   },
   description: {
@@ -16,18 +13,12 @@ const productSchema = new mongoose.Schema({
   },
   price: {
     type: Number,
-    required: function() {
-      // Only required in production mode
-      return process.env.NODE_ENV === 'production';
-    },
+    required: process.env.NODE_ENV === 'production',
     default: 0 // Fallback for development
   },
   stock_quantity: {
     type: Number,
-    required: function() {
-      // Only required in production mode
-      return process.env.NODE_ENV === 'production';
-    },
+    required: process.env.NODE_ENV === 'production',
     default: 1 // Fallback for development
   },
   image_url: {

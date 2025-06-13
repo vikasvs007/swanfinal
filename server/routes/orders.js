@@ -4,19 +4,19 @@ const router = express.Router();
 const orderController = require('../controllers/orderController');
 const { combinedAuth, adminAuth } = require('../middleware/auth');
 
-// Get all orders - requires admin authentication
-router.get('/', combinedAuth, orderController.getOrders);
-
-// Get order by ID - requires admin authentication
-router.get('/:id', combinedAuth, orderController.getOrderById);
-
 // Create a new order - requires admin authentication
-router.post('/', combinedAuth, orderController.createOrder);
+router.post('/create', combinedAuth, orderController.createOrder);
+
+// Get all orders - requires authentication (can remain combinedAuth if non-admins should view their own orders)
+router.get('/list', combinedAuth, orderController.getAllOrders);
+
+// Get a single order - requires authentication (can remain combinedAuth if non-admins should view their own order)
+router.get('/details/:id', combinedAuth, orderController.getOrder);
 
 // Update an order - requires admin authentication
-router.put('/:id', combinedAuth, orderController.updateOrder);
+router.put('/update/:id', combinedAuth, orderController.updateOrder);
 
 // Delete an order - requires admin authentication
-router.delete('/:id', combinedAuth, orderController.deleteOrder);
+router.delete('/remove/:id', combinedAuth, orderController.deleteOrder);
 
 module.exports = router;

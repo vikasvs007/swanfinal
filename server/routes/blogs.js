@@ -42,17 +42,17 @@ const upload = multer({
 // Get all blogs with filtering/pagination - public endpoint
 router.get('/posts', blogController.getAllBlogs);
 
+// Get blog categories - public endpoint
+router.get('/categories', blogController.getBlogCategories);
+
+// Get blog tags - public endpoint
+router.get('/tags', blogController.getBlogTags);
+
 // Get blog by ID - public endpoint
 router.get('/posts/:id', blogController.getBlog);
 
 // Get blog by slug - public endpoint
 router.get('/posts/slug/:slug', blogController.getBlogBySlug);
-
-// Get blog categories - public endpoint
-router.get('/categories', blogController.getCategories);
-
-// Get blog tags - public endpoint
-router.get('/tags', blogController.getTags);
 
 // Upload error handler middleware
 const handleUploadErrors = (err, req, res, next) => {
@@ -80,12 +80,12 @@ const handleUploadErrors = (err, req, res, next) => {
 router.post('/images/upload', apiKeyAuth, upload.single('image'), handleUploadErrors, blogController.uploadImage);
 
 // Create a new blog - requires admin authentication
-router.post('/posts', apiKeyAuth, blogController.createBlog);
+router.post('/posts/create', apiKeyAuth, blogController.createBlog);
 
 // Update a blog - requires admin authentication
-router.put('/posts/:id', apiKeyAuth, blogController.updateBlog);
+router.put('/posts/update/:id', apiKeyAuth, blogController.updateBlog);
 
 // Delete a blog - requires admin authentication
-router.delete('/posts/:id', apiKeyAuth, blogController.deleteBlog);
+router.delete('/posts/remove/:id', apiKeyAuth, blogController.deleteBlog);
 
 module.exports = router; 

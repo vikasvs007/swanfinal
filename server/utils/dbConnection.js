@@ -18,13 +18,18 @@ async function connectToDatabase() {
         maxPoolSize: 10
       };
       
+      // Check if MongoDB URI is available
+      if (!process.env.MONGODB_URI) {
+        throw new Error('MONGODB_URI environment variable is not set');
+      }
+      
       // Add SSL options in production
       if (process.env.NODE_ENV === 'production') {
         console.log('Using production MongoDB connection settings with SSL');
         // Note: MongoDB Atlas handles SSL by default, no need for additional SSL options
       }
       
-      await mongoose.connect(process.env.MONGODB_URI || 'mongodb+srv://vikas:vikasvs123@swan.d3ygkoq.mongodb.net/?retryWrites=true&w=majority&appName=Swan&ssl=true', connectionOptions);
+      await mongoose.connect(process.env.MONGODB_URI, connectionOptions);
       
       console.log('Connected to MongoDB successfully');
       

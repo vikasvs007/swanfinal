@@ -43,9 +43,9 @@ const normalizeMutationData = (data, options = {}) => {
 export const api = createApi({
   baseQuery: fetchBaseQuery({
     baseUrl: process.env.REACT_APP_BASE_URL || 'https://swanfinal.onrender.com/api',
-    credentials: 'include',
-    mode: 'cors',
-    cache: 'no-cache',
+    credentials: 'include', // Important for CORS with cookies
+    mode: 'cors', // Explicitly set CORS mode
+    cache: 'no-cache', // Prevent caching issues
     fetchFn: async (...args) => {
       // Log the request details in development for debugging
       if (process.env.NODE_ENV === 'development') {
@@ -58,6 +58,7 @@ export const api = createApi({
       const token = getState().global?.token;
       
       // Use API token directly from environment for now for simplicity
+      // In production, this should be obtained securely from the server
       const apiToken = process.env.REACT_APP_API_SECRET_TOKEN;
       
       // Debug token presence in development
@@ -71,6 +72,9 @@ export const api = createApi({
       // Add standard headers for CORS
       headers.set('Content-Type', 'application/json');
       headers.set('Accept', 'application/json');
+      
+      // Add explicit CORS headers for preflight requests
+      // headers.set('Access-Control-Request-Method', '*'); // Client should not set this, browser handles it for preflight
       
       // In production, always include authorization to ensure all methods work
       if (process.env.NODE_ENV === 'production') {
@@ -172,16 +176,25 @@ export const api = createApi({
     
     // Blog endpoints
     getBlogs: build.query({
-      query: () => "v1/data/blogs/posts",
+      query: ({ status, category, featured, search, limit, page } = {}) => {
+        let url = 'v1/data/blogs/posts?';
+        if (status) url += `status=${status}&`;
+        if (category) url += `category=${category}&`;
+        if (featured) url += `featured=${featured}&`;
+        if (search) url += `search=${search}&`;
+        if (limit) url += `limit=${limit}&`;
+        if (page) url += `page=${page}&`;
+        return url;
+      },
       providesTags: ["Blogs"],
     }),
-    getBlogById: build.query({
+    getBlog: build.query({
       query: (id) => `v1/data/blogs/posts/${id}`,
-      providesTags: ["Blogs"],
+      providesTags: (result, error, id) => [{ type: "Blogs", id }],
     }),
     getBlogBySlug: build.query({
       query: (slug) => `v1/data/blogs/posts/slug/${slug}`,
-      providesTags: ["Blogs"],
+      providesTags: (result, error, slug) => [{ type: "Blogs", slug }],
     }),
     getBlogCategories: build.query({
       query: () => "v1/data/blogs/categories",
@@ -201,32 +214,54 @@ export const api = createApi({
           method: "POST",
           body: formData,
           formData: true,
+          // Remove content-type header so browser can set it with boundary for multipart/form-data
           prepareHeaders: (headers) => {
             headers.delete('Content-Type');
+            // Always add authorization in production
+            if (process.env.NODE_ENV === 'production') {
+              headers.set('Authorization', 'Bearer development_token');
+            }
             return headers;
           },
         };
       },
     }),
     createBlog: build.mutation({
-      query: (data) => ({
-        url: "v1/data/blogs/posts",
-        method: "POST",
-        body: data,
-      }),
+      query: (data) => {
+        // Normalize data for server validation
+        const normalizedData = normalizeMutationData(data, {
+          preserveEmpty: true,
+        });
+        
+        return {
+          url: "v1/data/blogs/posts",
+          method: "POST",
+          body: normalizedData,
+        };
+      },
       invalidatesTags: ["Blogs"],
     }),
     updateBlog: build.mutation({
-      query: ({ id, ...data }) => ({
-        url: `v1/data/blogs/posts/${id}`,
-        method: "PUT",
-        body: data,
-      }),
-      invalidatesTags: ["Blogs"],
+      query: ({ id, ...data }) => {
+        // Normalize data for server validation
+        const normalizedData = normalizeMutationData(data, {
+          preserveEmpty: true,
+        });
+        
+        return {
+          url: `v1/data/blogs/posts/update/${id}`, // Corrected URL path
+          method: "PUT",
+          body: normalizedData,
+        };
+      },
+      invalidatesTags: (result, error, { id }) => [
+        "Blogs",
+        { type: "Blogs", id }
+      ],
     }),
     deleteBlog: build.mutation({
       query: (id) => ({
-        url: `v1/data/blogs/posts/${id}`,
+        url: `v1/data/blogs/posts/remove/${id}`,
         method: "DELETE",
       }),
       invalidatesTags: ["Blogs"],
@@ -242,19 +277,59 @@ export const api = createApi({
       providesTags: ["Products"],
     }),
     createProduct: build.mutation({
-      query: (data) => ({
-        url: "v1/data/items",
-        method: "POST",
-        body: data,
-      }),
+      query: (data) => {
+        // Normalize data for server validation
+        const normalizedData = normalizeMutationData(data, {
+          numericFields: ['price', 'stock_quantity', 'stock'],
+          fieldMapping: { stock_quantity: 'stock' }, // Map stock_quantity to stock to match server expectation
+        });
+        
+        return {
+          url: "v1/data/items",
+          method: "POST",
+          body: normalizedData, // Use normalized data
+          // Add custom headers for this request
+          prepareHeaders: (headers) => {
+            // Always use API token in production
+            if (process.env.NODE_ENV === 'production') {
+              const apiToken = process.env.REACT_APP_API_SECRET_TOKEN;
+              if (apiToken) {
+                headers.set('Authorization', `ApiKey ${apiToken}`);
+                console.log('Setting product creation API token auth header');
+              }
+            }
+            return headers;
+          }
+        };
+      },
       invalidatesTags: ["Products"],
     }),
     updateProduct: build.mutation({
-      query: ({ id, ...data }) => ({
-        url: `v1/data/items/${id}`,
-        method: "PUT",
-        body: data,
-      }),
+      query: ({ id, ...data }) => {
+        // Normalize data for server validation
+        const normalizedData = normalizeMutationData(data, {
+          numericFields: ['price', 'stock_quantity', 'stock'],
+          fieldMapping: { stock_quantity: 'stock' }, // Map stock_quantity to stock to match server expectation
+        });
+        
+        return {
+          url: `v1/data/items/${id}`,
+          method: "PUT",
+          body: normalizedData, // Use normalized data
+          // Add custom headers for this request
+          // prepareHeaders: (headers) => {
+          //   // Always use API token in production
+          //   if (process.env.NODE_ENV === 'production') {
+          //     const apiToken = process.env.REACT_APP_API_SECRET_TOKEN;
+          //     if (apiToken) {
+          //       headers.set('Authorization', `ApiKey ${apiToken}`);
+          //       console.log('Setting product update API token auth header');
+          //     }
+          //   }
+          //   return headers;
+          // }
+        };
+      },
       invalidatesTags: ["Products"],
     }),
     deleteProduct: build.mutation({
@@ -267,32 +342,77 @@ export const api = createApi({
     
     // Order endpoints
     getOrders: build.query({
-      query: () => "v1/data/orders",
-      providesTags: ["Orders"],
-    }),
-    getOrderById: build.query({
-      query: (id) => `v1/data/orders/${id}`,
+      query: () => "v1/data/orders/list",
       providesTags: ["Orders"],
     }),
     createOrder: build.mutation({
-      query: (data) => ({
-        url: "v1/data/orders",
-        method: "POST",
-        body: data,
-      }),
+      query: (data) => {
+        // Normalize data for server validation
+        let normalizedData = normalizeMutationData(data, {
+          numericFields: ['total_amount', 'quantity', 'price'],
+          preserveEmpty: true,
+        });
+        
+        // Ensure required fields are present
+        normalizedData = {
+          ...normalizedData,
+          // Default values for required fields if not provided
+          total_amount: normalizedData.total_amount || 0,
+          order_number: normalizedData.order_number || `ORD-${Date.now()}`
+        };
+        
+        // Build the request with proper authorization
+        return {
+          url: "v1/data/orders/create",
+          method: "POST",
+          body: normalizedData,
+          // Add custom headers for this request
+          // prepareHeaders: (headers) => {
+          //   // Always use API token in production
+          //   if (process.env.NODE_ENV === 'production') {
+          //     const apiToken = process.env.REACT_APP_API_SECRET_TOKEN;
+          //     if (apiToken) {
+          //       headers.set('Authorization', `ApiKey ${apiToken}`);
+          //       console.log('Setting order creation API token auth header');
+          //     }
+          //   }
+          //   return headers;
+          // }
+        };
+      },
       invalidatesTags: ["Orders"],
     }),
     updateOrder: build.mutation({
-      query: ({ id, ...data }) => ({
-        url: `v1/data/orders/${id}`,
-        method: "PUT",
-        body: data,
-      }),
+      query: ({ id, data }) => {
+        // Normalize data for server validation
+        const normalizedData = normalizeMutationData(data, {
+          numericFields: ['total_amount', 'quantity', 'price'],
+          preserveEmpty: true,
+        });
+        
+        return {
+          url: `v1/data/orders/update/${id}`,
+          method: "PUT",
+          body: normalizedData,
+          // Add custom headers for this request
+          prepareHeaders: (headers) => {
+            // Always use API token in production
+            if (process.env.NODE_ENV === 'production') {
+              const apiToken = process.env.REACT_APP_API_SECRET_TOKEN;
+              if (apiToken) {
+                headers.set('Authorization', `ApiKey ${apiToken}`);
+                console.log('Setting order update API token auth header');
+              }
+            }
+            return headers;
+          }
+        };
+      },
       invalidatesTags: ["Orders"],
     }),
     deleteOrder: build.mutation({
       query: (id) => ({
-        url: `v1/data/orders/${id}`,
+        url: `v1/data/orders/remove/${id}`,
         method: "DELETE",
       }),
       invalidatesTags: ["Orders"],
