@@ -49,4 +49,4 @@ userSchema.index({ is_active: 1 });
 userSchema.index({ role: 1 });
 
 // Set collection name explicitly to avoid collection name issues
-module.exports = mongoose.model('User', userSchema, 'users');
+module.exports = mongoose.model('user', userSchema,);

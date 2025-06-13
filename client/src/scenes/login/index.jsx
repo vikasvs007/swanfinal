@@ -37,13 +37,13 @@ import { signInWithEmailAndPassword, signInWithPopup } from "firebase/auth";
 const getUserData = (type) => {
   // Return mock user data based on user type
   const users = {
-    admin: {
-      id: "67ab741b4ed113b4940fac28",
-      email: "admin@company.com",
-      password: "admin@123",
-      name: "Admin User",
-      role: "admin"
-    }
+    // admin: {
+    //   id: "67ab741b4ed113b4940fac28",
+    //   email: "vishal@gmail.com",
+    //   password: "admin@12",
+    //   name: "Admin User",
+    //   role: "admin"
+    // }
   };
   
   return users[type];
@@ -256,7 +256,7 @@ const Login = () => {
           
           // Store authentication in localStorage (for persistence)
           localStorage.setItem('isAuthenticated', 'true');
-          localStorage.setItem('authToken', mockToken);
+          // localStorage.setItem('authToken', mockToken);
           
           console.log("Mock login successful! Redirecting...");
           

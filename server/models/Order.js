@@ -3,7 +3,7 @@ const mongoose = require('mongoose');
 const orderSchema = new mongoose.Schema({
   user_id: {
     type: mongoose.Schema.Types.ObjectId,
-    ref: 'Users',
+    ref: 'user',
   },
   name: {
     type: String,
@@ -46,4 +46,4 @@ const orderSchema = new mongoose.Schema({
   timestamps: { createdAt: 'created_at', updatedAt: 'updated_at' }
 });
 
-module.exports = mongoose.model('ordersList', orderSchema);
+module.exports = mongoose.model('orders', orderSchema);

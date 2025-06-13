@@ -8,7 +8,7 @@ export const api = createApi({
       const token = getState().global?.token;
       
       // Check for API token in localStorage
-      const apiToken = localStorage.getItem('apiToken');
+      const apiToken = process.env.REACT_APP_API_SECRET_TOKEN;
       
       // Debug token presence in development
       if (process.env.NODE_ENV === 'development') {
@@ -47,11 +47,11 @@ export const api = createApi({
     // User endpoints
     getUser: build.query({
       query: (id) => `users/${id}`,
-      providesTags: ["User"],
+      providesTags: ["user"],
     }),
     getUsers: build.query({
       query: () => "users",
-      providesTags: ["User"],
+      providesTags: ["user"],
     }),
     createUser: build.mutation({
       query: (data) => ({
@@ -59,7 +59,7 @@ export const api = createApi({
         method: "POST",
         body: data,
       }),
-      invalidatesTags: ["User"],
+      invalidatesTags: ["user"],
     }),
     updateUser: build.mutation({
       query: ({ id, ...data }) => ({
@@ -67,7 +67,7 @@ export const api = createApi({
         method: "PUT",
         body: data,
       }),
-      invalidatesTags: ["User"],
+      invalidatesTags: ["user"],
     }),
     deleteUser: build.mutation({
       query: (id) => {
@@ -86,7 +86,7 @@ export const api = createApi({
           console.error('Error deleting user:', error);
         }
       },
-      invalidatesTags: ["User"],
+      invalidatesTags: ["user"],
     }),
     uploadPhoto: build.mutation({
       query: ({ id, photo }) => {
@@ -98,7 +98,7 @@ export const api = createApi({
           body: formData,
         };
       },
-      invalidatesTags: ["User"],
+      invalidatesTags: ["user"],
     }),
     
     // Blog endpoints

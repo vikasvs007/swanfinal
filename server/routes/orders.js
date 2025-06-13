@@ -8,7 +8,7 @@ const { combinedAuth } = require('../middleware/auth');
 router.post('/', combinedAuth, orderController.createOrder);
 
 // Get all orders - requires authentication
-router.get('/', combinedAuth, orderController.getAllOrders);
+router.get('/', orderController.getAllOrders);
 
 // Get a single order - requires authentication
 router.get('/:id', combinedAuth, orderController.getOrder);

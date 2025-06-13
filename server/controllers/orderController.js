@@ -4,17 +4,9 @@ const Order = require('../models/Order');
 const orderController = {
   // Create a new order
   async createOrder(req, res) {
-    try {
-      // Create order object with validated fields
-      const orderData = { ...req.body };
-      
-      // If there's no user_id but there is a name, ensure user_id is undefined
-      // This allows mongoose to save the order without a user_id reference
-      if (!orderData.user_id && orderData.name) {
-        orderData.user_id = undefined;
-      }
-      
-      const order = new Order(orderData);
+    try { 
+
+      const order = new Order(req.body);
       await order.save();
       res.status(201).json(order);
     } catch (error) {
