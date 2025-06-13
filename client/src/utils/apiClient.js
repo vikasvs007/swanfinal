@@ -28,6 +28,31 @@ apiClient.interceptors.request.use(
     if (process.env.NODE_ENV === 'production' && apiToken) {
       config.headers['Authorization'] = `ApiKey ${apiToken}`;
     }
+
+    // Ensure proper content type for POST/PUT requests
+    if (['post', 'put'].includes(config.method?.toLowerCase())) {
+      // For FormData, let the browser set the content type
+      if (!(config.data instanceof FormData)) {
+        config.headers['Content-Type'] = 'application/json';
+      }
+      
+      // Validate request data before sending
+      if (config.data && typeof config.data === 'object') {
+        // Remove undefined values
+        Object.keys(config.data).forEach(key => {
+          if (config.data[key] === undefined) {
+            delete config.data[key];
+          }
+        });
+        
+        // Convert empty strings to null for required fields
+        Object.keys(config.data).forEach(key => {
+          if (config.data[key] === '') {
+            config.data[key] = null;
+          }
+        });
+      }
+    }
     
     // Log request details in production for debugging
     if (process.env.NODE_ENV === 'production') {
@@ -55,12 +80,34 @@ apiClient.interceptors.response.use(
     // Handle common errors
     if (error.response) {
       // Server responded with a status code outside of 2xx range
-      if (error.response.status === 401) {
+      if (error.response.status === 400) {
+        // Handle validation errors
+        const errorData = error.response.data;
+        let errorMessage = 'Validation failed';
+        
+        if (errorData.errors) {
+          // Handle array of validation errors
+          errorMessage = errorData.errors.map(err => err.message || err).join(', ');
+        } else if (errorData.message) {
+          // Handle single validation error message
+          errorMessage = errorData.message;
+        }
+        
+        console.error('[API Error] Validation Error:', {
+          message: errorMessage,
+          data: errorData,
+          request: {
+            url: error.config?.url,
+            method: error.config?.method,
+            data: error.config?.data
+          }
+        });
+        
+        // Throw a more user-friendly error
+        throw new Error(errorMessage);
+      } else if (error.response.status === 401) {
         console.error('[API Error] Authentication error:', error.response.data.message);
-        // Clear API token on authentication error
         localStorage.removeItem('apiToken');
-        // Optionally redirect to login page
-        // window.location.href = '/login';
       } else if (error.response.status === 403) {
         console.error('[API Error] Permission denied:', error.response.data.message);
       } else if (error.response.status === 0) {
@@ -83,10 +130,8 @@ apiClient.interceptors.response.use(
         });
       }
     } else if (error.request) {
-      // Request was made but no response received
       console.error('[API Error] Network error - no response received from server');
     } else {
-      // Error in setting up the request
       console.error('[API Error] Request error:', error.message);
     }
     

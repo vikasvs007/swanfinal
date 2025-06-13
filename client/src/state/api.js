@@ -43,9 +43,9 @@ const normalizeMutationData = (data, options = {}) => {
 export const api = createApi({
   baseQuery: fetchBaseQuery({
     baseUrl: process.env.REACT_APP_BASE_URL || 'https://swanfinal.onrender.com/api',
-    credentials: 'include', // Important for CORS with cookies
-    mode: 'cors', // Explicitly set CORS mode
-    cache: 'no-cache', // Prevent caching issues
+    credentials: 'include',
+    mode: 'cors',
+    cache: 'no-cache',
     fetchFn: async (...args) => {
       // Log the request details in development for debugging
       if (process.env.NODE_ENV === 'development') {
@@ -58,7 +58,6 @@ export const api = createApi({
       const token = getState().global?.token;
       
       // Use API token directly from environment for now for simplicity
-      // In production, this should be obtained securely from the server
       const apiToken = process.env.REACT_APP_API_SECRET_TOKEN;
       
       // Debug token presence in development
@@ -72,9 +71,6 @@ export const api = createApi({
       // Add standard headers for CORS
       headers.set('Content-Type', 'application/json');
       headers.set('Accept', 'application/json');
-      
-      // Add explicit CORS headers for preflight requests
-      // headers.set('Access-Control-Request-Method', '*'); // Client should not set this, browser handles it for preflight
       
       // In production, always include authorization to ensure all methods work
       if (process.env.NODE_ENV === 'production') {
@@ -259,24 +255,35 @@ export const api = createApi({
     }),
     createProduct: build.mutation({
       query: (data) => {
-        // Normalize data for server validation
-        const normalizedData = normalizeMutationData(data, {
-          numericFields: ['price', 'stock_quantity', 'stock'],
-          fieldMapping: { stock_quantity: 'stock' }, // Map stock_quantity to stock to match server expectation
-        });
-        
+        // Normalize and validate product data
+        const normalizedData = {
+          ...data,
+          // Ensure required fields have values
+          name: data.name?.trim() || null,
+          description: data.description?.trim() || null,
+          price: Number(data.price) || 0,
+          stock: Number(data.stock) || 0,
+          category: data.category?.trim() || null,
+          // Remove undefined values
+          ...Object.fromEntries(
+            Object.entries(data).filter(([_, value]) => value !== undefined)
+          )
+        };
+
+        // Log the normalized data in production
+        if (process.env.NODE_ENV === 'production') {
+          console.log('[Product Creation] Normalized data:', normalizedData);
+        }
+
         return {
           url: "v1/data/items",
           method: "POST",
-          body: normalizedData, // Use normalized data
-          // Add custom headers for this request
+          body: normalizedData,
           prepareHeaders: (headers) => {
-            // Always use API token in production
             if (process.env.NODE_ENV === 'production') {
               const apiToken = process.env.REACT_APP_API_SECRET_TOKEN;
               if (apiToken) {
                 headers.set('Authorization', `ApiKey ${apiToken}`);
-                console.log('Setting product creation API token auth header');
               }
             }
             return headers;
@@ -328,37 +335,38 @@ export const api = createApi({
     }),
     createOrder: build.mutation({
       query: (data) => {
-        // Normalize data for server validation
-        let normalizedData = normalizeMutationData(data, {
-          numericFields: ['total_amount', 'quantity', 'price'],
-          preserveEmpty: true,
-        });
-        
-        // Ensure required fields are present
-        normalizedData = {
-          ...normalizedData,
-          // Default values for required fields if not provided
-          total_amount: normalizedData.total_amount || 0,
-          order_number: normalizedData.order_number || `ORD-${Date.now()}`
+        // Normalize and validate order data
+        const normalizedData = {
+          ...data,
+          // Ensure required fields have values
+          total_amount: Number(data.total_amount) || 0,
+          order_number: data.order_number || `ORD-${Date.now()}`,
+          customer_name: data.customer_name?.trim() || null,
+          customer_email: data.customer_email?.trim() || null,
+          // Remove undefined values
+          ...Object.fromEntries(
+            Object.entries(data).filter(([_, value]) => value !== undefined)
+          )
         };
-        
-        // Build the request with proper authorization
+
+        // Log the normalized data in production
+        if (process.env.NODE_ENV === 'production') {
+          console.log('[Order Creation] Normalized data:', normalizedData);
+        }
+
         return {
           url: "v1/data/orders/create",
           method: "POST",
           body: normalizedData,
-          // Add custom headers for this request
-          // prepareHeaders: (headers) => {
-          //   // Always use API token in production
-          //   if (process.env.NODE_ENV === 'production') {
-          //     const apiToken = process.env.REACT_APP_API_SECRET_TOKEN;
-          //     if (apiToken) {
-          //       headers.set('Authorization', `ApiKey ${apiToken}`);
-          //       console.log('Setting order creation API token auth header');
-          //     }
-          //   }
-          //   return headers;
-          // }
+          prepareHeaders: (headers) => {
+            if (process.env.NODE_ENV === 'production') {
+              const apiToken = process.env.REACT_APP_API_SECRET_TOKEN;
+              if (apiToken) {
+                headers.set('Authorization', `ApiKey ${apiToken}`);
+              }
+            }
+            return headers;
+          }
         };
       },
       invalidatesTags: ["Orders"],
