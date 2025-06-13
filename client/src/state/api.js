@@ -81,7 +81,8 @@ export const api = createApi({
         // For production, use the API token from environment variables
         const apiToken = process.env.REACT_APP_API_SECRET_TOKEN;
         if (apiToken) {
-          headers.set('Authorization', `ApiKey ${apiToken}`);
+          headers.set('Authorization', `Bearer ${apiToken}`);
+          // headers.set('Authorization', `ApiKey ${apiToken}`);
           console.log('Setting API key auth header for production');
         } else {
           console.warn('API token not available in production environment');
@@ -219,7 +220,7 @@ export const api = createApi({
             headers.delete('Content-Type');
             // Always add authorization in production
             if (process.env.NODE_ENV === 'production') {
-              headers.set('Authorization', 'Bearer development_token');
+              headers.set('Authorization', `${apiToken}`);
             }
             return headers;
           },
@@ -237,6 +238,10 @@ export const api = createApi({
           url: "v1/data/blogs/posts",
           method: "POST",
           body: normalizedData,
+          prepareHeaders: (headers) => {
+            headers.set('Authorization', `Bearer ${apiToken}`);
+            return headers;
+          },
         };
       },
       invalidatesTags: ["Blogs"],
@@ -252,6 +257,10 @@ export const api = createApi({
           url: `v1/data/blogs/posts/update/${id}`, // Corrected URL path
           method: "PUT",
           body: normalizedData,
+          prepareHeaders: (headers) => {
+            headers.set('Authorization', `Bearer ${apiToken}`);
+            return headers;
+          },
         };
       },
       invalidatesTags: (result, error, { id }) => [
@@ -294,7 +303,7 @@ export const api = createApi({
             if (process.env.NODE_ENV === 'production') {
               const apiToken = process.env.REACT_APP_API_SECRET_TOKEN;
               if (apiToken) {
-                headers.set('Authorization', `ApiKey ${apiToken}`);
+                headers.set('Authorization', `Bearer ${apiToken}`);
                 console.log('Setting product creation API token auth header');
               }
             }
@@ -316,18 +325,10 @@ export const api = createApi({
           url: `v1/data/items/${id}`,
           method: "PUT",
           body: normalizedData, // Use normalized data
-          // Add custom headers for this request
-          // prepareHeaders: (headers) => {
-          //   // Always use API token in production
-          //   if (process.env.NODE_ENV === 'production') {
-          //     const apiToken = process.env.REACT_APP_API_SECRET_TOKEN;
-          //     if (apiToken) {
-          //       headers.set('Authorization', `ApiKey ${apiToken}`);
-          //       console.log('Setting product update API token auth header');
-          //     }
-          //   }
-          //   return headers;
-          // }
+          prepareHeaders: (headers) => {
+            headers.set('Authorization', `Bearer ${apiToken}`);
+            return headers;
+          },
         };
       },
       invalidatesTags: ["Products"],
@@ -366,18 +367,10 @@ export const api = createApi({
           url: "v1/data/orders/create",
           method: "POST",
           body: normalizedData,
-          // Add custom headers for this request
-          // prepareHeaders: (headers) => {
-          //   // Always use API token in production
-          //   if (process.env.NODE_ENV === 'production') {
-          //     const apiToken = process.env.REACT_APP_API_SECRET_TOKEN;
-          //     if (apiToken) {
-          //       headers.set('Authorization', `ApiKey ${apiToken}`);
-          //       console.log('Setting order creation API token auth header');
-          //     }
-          //   }
-          //   return headers;
-          // }
+          prepareHeaders: (headers) => {
+            headers.set('Authorization', `Bearer ${apiToken}`);
+            return headers;
+          },
         };
       },
       invalidatesTags: ["Orders"],
@@ -400,7 +393,7 @@ export const api = createApi({
             if (process.env.NODE_ENV === 'production') {
               const apiToken = process.env.REACT_APP_API_SECRET_TOKEN;
               if (apiToken) {
-                headers.set('Authorization', `ApiKey ${apiToken}`);
+                headers.set('Authorization', `Bearer ${apiToken}`);
                 console.log('Setting order update API token auth header');
               }
             }
@@ -441,6 +434,10 @@ export const api = createApi({
           url: "v1/data/inquiries",
           method: "POST",
           body: normalizedData,
+          prepareHeaders: (headers) => {
+            headers.set('Authorization', `Bearer ${apiToken}`);
+            return headers;
+          },
         };
       },
       invalidatesTags: ["Enquiries"],
@@ -463,6 +460,10 @@ export const api = createApi({
           url: `v1/data/inquiries/${id}`,
           method: "PUT",
           body: normalizedData,
+          prepareHeaders: (headers) => {
+            headers.set('Authorization', `Bearer ${apiToken}`);
+            return headers;
+          },
         };
       },
       invalidatesTags: ["Enquiries"],
@@ -486,6 +487,10 @@ export const api = createApi({
         url: "v1/data/notifications/create",
         method: "POST",
         body: data,
+        prepareHeaders: (headers) => {
+          headers.set('Authorization', `Bearer ${apiToken}`);
+          return headers;
+        },
       }),
       invalidatesTags: ["Notifications"],
     }),
@@ -494,6 +499,10 @@ export const api = createApi({
         url: `v1/data/notifications/mark-read/${id}`,
         method: "PUT",
         body: data,
+        prepareHeaders: (headers) => {
+          headers.set('Authorization', `Bearer ${apiToken}`);
+          return headers;
+        },
       }),
       invalidatesTags: ["Notifications"],
     }),
@@ -524,6 +533,10 @@ export const api = createApi({
         url: "v1/data/visitors",
         method: "POST",
         body: data,
+        prepareHeaders: (headers) => {
+          headers.set('Authorization', `Bearer ${apiToken}`);
+          return headers;
+        },
       }),
       invalidatesTags: ["Visitors"],
     }),
@@ -532,6 +545,10 @@ export const api = createApi({
         url: `v1/data/visitors/${id}`,
         method: "PUT",
         body: data,
+        prepareHeaders: (headers) => {
+          headers.set('Authorization', `Bearer ${apiToken}`);
+          return headers;
+        },
       }),
       invalidatesTags: ["Visitors", "Geography"],
     }),
@@ -584,12 +601,10 @@ export const api = createApi({
           method: "POST",
           body: formData,
           formData: true,
-          // // Remove content-type header so browser can set it with boundary for multipart/form-data
-          // prepareHeaders: (headers) => {
-          //   headers.delete('Content-Type'); // Allow browser to set Content-Type for FormData
-          //   // Authorization is handled by the global prepareHeaders
-          //   return headers;
-          // },
+          prepareHeaders: (headers) => {
+            headers.set('Authorization', `Bearer ${apiToken}`);
+            return headers;
+          },
         };
       },
     }),
@@ -598,6 +613,10 @@ export const api = createApi({
         url: "v1/data/cards/create",
         method: "POST",
         body: data,
+        prepareHeaders: (headers) => {
+          headers.set('Authorization', `Bearer ${apiToken}`);
+          return headers;
+        },
       }),
       invalidatesTags: ["Cards"],
     }),
@@ -606,6 +625,10 @@ export const api = createApi({
         url: `v1/data/cards/update/${id}`,
         method: "PUT",
         body: data,
+        prepareHeaders: (headers) => {
+          headers.set('Authorization', `Bearer ${apiToken}`);
+          return headers;
+        },
       }),
       invalidatesTags: (result, error, { id }) => [
         "Cards",

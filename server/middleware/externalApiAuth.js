@@ -50,7 +50,7 @@ const externalApiAuth = (req, res, next) => {
 
   // For non-GET requests from external clients, enforce API token authentication
   if (isLikelyExternal) {
-    return apiKeyAuth(req, res, next);
+    return combinedAuth(req, res, next);
   }
   
   // For regular web app traffic, continue with existing authentication flow

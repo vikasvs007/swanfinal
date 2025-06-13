@@ -15,7 +15,7 @@ const apiClient = axios.create({
     'Content-Type': 'application/json',
     // Add API token for production environment
     ...(process.env.NODE_ENV === 'production' && {
-      'Authorization': `Bearer ${process.env.REACT_APP_API_SECRET_TOKEN || 'swanapi_sec_token_6363163519'}`
+      'Authorization': `Bearer ${process.env.REACT_APP_API_SECRET_TOKEN }`
     })
   },
   // This is crucial for cookies to be sent with requests

@@ -22,7 +22,7 @@ const apiProxy = async (req, res) => {
     // Create headers with API token
     const headers = {
       'Content-Type': 'application/json',
-      'Authorization': `ApiKey ${API_TOKEN}`
+      'Authorization': `Bearer ${API_TOKEN}`
     };
     
     // Copy any additional headers from the original request (except host and authorization)
