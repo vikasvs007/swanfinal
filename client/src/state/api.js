@@ -218,23 +218,40 @@ export const api = createApi({
       },
     }),
     createBlog: build.mutation({
-      query: (data) => ({
-        url: "v1/data/blogs/posts/create",
-        method: "POST",
-        body: data,
-      }),
+      query: (data) => {
+        // Simple data normalization without complex transformations
+        const normalizedData = {
+          title: data.title?.trim(),
+          content: data.content?.trim(),
+          category: data.category?.trim(),
+          tags: data.tags
+        };
+
+        return {
+          url: "v1/data/blogs/posts", // Match GET pattern
+          method: "POST",
+          body: normalizedData
+        };
+      },
       invalidatesTags: ["Blogs"],
     }),
     updateBlog: build.mutation({
-      query: ({ id, ...data }) => ({
-        url: `v1/data/blogs/posts/update/${id}`,
-        method: "PUT",
-        body: data,
-      }),
-      invalidatesTags: (result, error, { id }) => [
-        "Blogs",
-        { type: "Blogs", id }
-      ],
+      query: ({ id, ...data }) => {
+        // Simple data normalization without complex transformations
+        const normalizedData = {
+          title: data.title?.trim(),
+          content: data.content?.trim(),
+          category: data.category?.trim(),
+          tags: data.tags
+        };
+
+        return {
+          url: `v1/data/blogs/posts/${id}`, // Match DELETE pattern
+          method: "PUT",
+          body: normalizedData
+        };
+      },
+      invalidatesTags: ["Blogs"],
     }),
     deleteBlog: build.mutation({
       query: (id) => ({
@@ -255,67 +272,38 @@ export const api = createApi({
     }),
     createProduct: build.mutation({
       query: (data) => {
-        // Normalize and validate product data
+        // Simple data normalization without complex transformations
         const normalizedData = {
-          ...data,
-          // Ensure required fields have values
-          name: data.name?.trim() || null,
-          description: data.description?.trim() || null,
-          price: Number(data.price) || 0,
-          stock: Number(data.stock) || 0,
-          category: data.category?.trim() || null,
-          // Remove undefined values
-          ...Object.fromEntries(
-            Object.entries(data).filter(([_, value]) => value !== undefined)
-          )
+          name: data.name?.trim(),
+          description: data.description?.trim(),
+          price: Number(data.price),
+          stock: Number(data.stock),
+          category: data.category?.trim()
         };
 
-        // Log the normalized data in production
-        if (process.env.NODE_ENV === 'production') {
-          console.log('[Product Creation] Normalized data:', normalizedData);
-        }
-
         return {
-          url: "v1/data/items",
+          url: "v1/data/items", // Match GET pattern
           method: "POST",
-          body: normalizedData,
-          prepareHeaders: (headers) => {
-            if (process.env.NODE_ENV === 'production') {
-              const apiToken = process.env.REACT_APP_API_SECRET_TOKEN;
-              if (apiToken) {
-                headers.set('Authorization', `ApiKey ${apiToken}`);
-              }
-            }
-            return headers;
-          }
+          body: normalizedData
         };
       },
       invalidatesTags: ["Products"],
     }),
     updateProduct: build.mutation({
       query: ({ id, ...data }) => {
-        // Normalize data for server validation
-        const normalizedData = normalizeMutationData(data, {
-          numericFields: ['price', 'stock_quantity', 'stock'],
-          fieldMapping: { stock_quantity: 'stock' }, // Map stock_quantity to stock to match server expectation
-        });
-        
+        // Simple data normalization without complex transformations
+        const normalizedData = {
+          name: data.name?.trim(),
+          description: data.description?.trim(),
+          price: Number(data.price),
+          stock: Number(data.stock),
+          category: data.category?.trim()
+        };
+
         return {
-          url: `v1/data/items/${id}`,
+          url: `v1/data/items/${id}`, // Match DELETE pattern
           method: "PUT",
-          body: normalizedData, // Use normalized data
-          // Add custom headers for this request
-          // prepareHeaders: (headers) => {
-          //   // Always use API token in production
-          //   if (process.env.NODE_ENV === 'production') {
-          //     const apiToken = process.env.REACT_APP_API_SECRET_TOKEN;
-          //     if (apiToken) {
-          //       headers.set('Authorization', `ApiKey ${apiToken}`);
-          //       console.log('Setting product update API token auth header');
-          //     }
-          //   }
-          //   return headers;
-          // }
+          body: normalizedData
         };
       },
       invalidatesTags: ["Products"],
@@ -335,66 +323,35 @@ export const api = createApi({
     }),
     createOrder: build.mutation({
       query: (data) => {
-        // Normalize and validate order data
+        // Simple data normalization without complex transformations
         const normalizedData = {
-          ...data,
-          // Ensure required fields have values
-          total_amount: Number(data.total_amount) || 0,
+          total_amount: Number(data.total_amount),
           order_number: data.order_number || `ORD-${Date.now()}`,
-          customer_name: data.customer_name?.trim() || null,
-          customer_email: data.customer_email?.trim() || null,
-          // Remove undefined values
-          ...Object.fromEntries(
-            Object.entries(data).filter(([_, value]) => value !== undefined)
-          )
+          customer_name: data.customer_name?.trim(),
+          customer_email: data.customer_email?.trim()
         };
 
-        // Log the normalized data in production
-        if (process.env.NODE_ENV === 'production') {
-          console.log('[Order Creation] Normalized data:', normalizedData);
-        }
-
         return {
-          url: "v1/data/orders/create",
+          url: "v1/data/orders", // Match GET pattern
           method: "POST",
-          body: normalizedData,
-          prepareHeaders: (headers) => {
-            if (process.env.NODE_ENV === 'production') {
-              const apiToken = process.env.REACT_APP_API_SECRET_TOKEN;
-              if (apiToken) {
-                headers.set('Authorization', `ApiKey ${apiToken}`);
-              }
-            }
-            return headers;
-          }
+          body: normalizedData
         };
       },
       invalidatesTags: ["Orders"],
     }),
     updateOrder: build.mutation({
-      query: ({ id, data }) => {
-        // Normalize data for server validation
-        const normalizedData = normalizeMutationData(data, {
-          numericFields: ['total_amount', 'quantity', 'price'],
-          preserveEmpty: true,
-        });
-        
+      query: ({ id, ...data }) => {
+        // Simple data normalization without complex transformations
+        const normalizedData = {
+          total_amount: Number(data.total_amount),
+          customer_name: data.customer_name?.trim(),
+          customer_email: data.customer_email?.trim()
+        };
+
         return {
-          url: `v1/data/orders/update/${id}`,
+          url: `v1/data/orders/${id}`, // Match DELETE pattern
           method: "PUT",
-          body: normalizedData,
-          // Add custom headers for this request
-          prepareHeaders: (headers) => {
-            // Always use API token in production
-            if (process.env.NODE_ENV === 'production') {
-              const apiToken = process.env.REACT_APP_API_SECRET_TOKEN;
-              if (apiToken) {
-                headers.set('Authorization', `ApiKey ${apiToken}`);
-                console.log('Setting order update API token auth header');
-              }
-            }
-            return headers;
-          }
+          body: normalizedData
         };
       },
       invalidatesTags: ["Orders"],
