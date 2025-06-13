@@ -25,11 +25,11 @@ const COOKIE_OPTIONS = {
 };
 
 /**
- * @route   POST /api/auth/login
+ * @route   POST /api/swan-authentication/login
  * @desc    Authenticate user & get token via secure cookie
  * @access  Public
  */
-router.post('/login', authLimiter, async (req, res) => {
+router.post('/api/swan-authentication/login', authLimiter, async (req, res) => {
   try {
     const { email, password } = req.body;
 
@@ -92,11 +92,11 @@ router.post('/login', authLimiter, async (req, res) => {
 });
 
 /**
- * @route   POST /api/auth/logout
+ * @route   POST /api/swan-authentication/logout
  * @desc    Logout user by clearing the auth cookie
  * @access  Public
  */
-router.post('/logout', (req, res) => {
+router.post('/api/swan-authentication/logout', (req, res) => {
   // Clear the auth cookie
   res.clearCookie('auth_token', {
     httpOnly: true,
@@ -112,11 +112,11 @@ router.post('/logout', (req, res) => {
 });
 
 /**
- * @route   GET /api/auth/profile
+ * @route   GET /api/swan-authentication/profile
  * @desc    Get current user profile
  * @access  Private
  */
-router.get('/profile', auth, async (req, res) => {
+router.get('/api/swan-authentication/profile', auth, async (req, res) => {
   try {
     // User is available from auth middleware
     if (!req.user) {

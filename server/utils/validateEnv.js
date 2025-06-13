@@ -13,6 +13,33 @@ const validateEnvironment = () => {
   
   const missingVars = [];
   
+  // Check if we're in production
+  const isProduction = process.env.NODE_ENV === 'production';
+  
+  // Load production environment variables if available
+  if (isProduction) {
+    console.log('Loading production environment variables...');
+    
+    // Try to load from .env.production first
+    try {
+      require('dotenv').config({ path: '.env.production' });
+      console.log('Successfully loaded .env.production');
+    } catch (err) {
+      console.warn('Could not load .env.production:', err.message);
+    }
+    
+    // If still missing, try to load from .env
+    if (missingVars.length > 0) {
+      try {
+        require('dotenv').config();
+        console.log('Successfully loaded .env');
+      } catch (err) {
+        console.warn('Could not load .env:', err.message);
+      }
+    }
+  }
+  
+  // Now check the variables
   requiredVars.forEach(varName => {
     if (!process.env[varName]) {
       missingVars.push(varName);
@@ -24,10 +51,9 @@ const validateEnvironment = () => {
     missingVars.forEach(varName => {
       console.error(`   - ${varName}`);
     });
-    console.error('Please add these variables to your .env file');
+    console.error('Please add these variables to your environment configuration');
     
-    // Don't crash in development, but warn clearly
-    if (process.env.NODE_ENV === 'production') {
+    if (isProduction) {
       throw new Error(`Missing required environment variables: ${missingVars.join(', ')}`);
     } else {
       console.warn('⚠️ API proxy may not function correctly without these environment variables');

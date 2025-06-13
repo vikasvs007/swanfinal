@@ -46,16 +46,16 @@ export const api = createApi({
   endpoints: (build) => ({
     // User endpoints
     getUser: build.query({
-      query: (id) => `users/${id}`,
+      query: (id) => `user-management/${id}`,
       providesTags: ["user"],
     }),
     getUsers: build.query({
-      query: () => "users",
+      query: () => "user-management",
       providesTags: ["user"],
     }),
     createUser: build.mutation({
       query: (data) => ({
-        url: "users",
+        url: "user-management",
         method: "POST",
         body: data,
       }),
@@ -63,7 +63,7 @@ export const api = createApi({
     }),
     updateUser: build.mutation({
       query: ({ id, ...data }) => ({
-        url: `users/${id}`,
+        url: `user-management/${id}`,
         method: "PUT",
         body: data,
       }),
@@ -73,7 +73,7 @@ export const api = createApi({
       query: (id) => {
         console.log('Deleting user with ID:', id);
         return {
-          url: `users/${id}`,
+          url: `user-management/${id}`,
           method: "DELETE",
         };
       },
@@ -93,7 +93,7 @@ export const api = createApi({
         const formData = new FormData();
         formData.append("photo", photo);
         return {
-          url: `users/${id}/photo`,
+          url: `user-management/${id}/photo`,
           method: "POST",
           body: formData,
         };
@@ -104,7 +104,7 @@ export const api = createApi({
     // Blog endpoints
     getBlogs: build.query({
       query: ({ status, category, featured, search, limit, page } = {}) => {
-        let url = 'blogs?';
+        let url = 'blog-content?';
         if (status) url += `status=${status}&`;
         if (category) url += `category=${category}&`;
         if (featured) url += `featured=${featured}&`;
@@ -116,19 +116,19 @@ export const api = createApi({
       providesTags: ["Blogs"],
     }),
     getBlog: build.query({
-      query: (id) => `blogs/${id}`,
+      query: (id) => `blog-content/${id}`,
       providesTags: (result, error, id) => [{ type: "Blogs", id }],
     }),
     getBlogBySlug: build.query({
-      query: (slug) => `blogs/slug/${slug}`,
+      query: (slug) => `blog-content/slug/${slug}`,
       providesTags: (result, error, slug) => [{ type: "Blogs", slug }],
     }),
     getBlogCategories: build.query({
-      query: () => "blogs/categories",
+      query: () => "blog-content/categories",
       providesTags: ["Blogs"],
     }),
     getBlogTags: build.query({
-      query: () => "blogs/tags",
+      query: () => "blog-content/tags",
       providesTags: ["Blogs"],
     }),
     uploadBlogImage: build.mutation({
@@ -137,7 +137,7 @@ export const api = createApi({
         formData.append("image", imageFile);
         console.log('Uploading image file:', imageFile.name, imageFile.type, imageFile.size);
         return {
-          url: "blogs/upload-image",
+          url: "blog-content/upload-image",
           method: "POST",
           body: formData,
           formData: true,
@@ -146,7 +146,7 @@ export const api = createApi({
     }),
     createBlog: build.mutation({
       query: (data) => ({
-        url: "blogs",
+        url: "blog-content",
         method: "POST",
         body: data,
       }),
@@ -154,7 +154,7 @@ export const api = createApi({
     }),
     updateBlog: build.mutation({
       query: ({ id, ...data }) => ({
-        url: `blogs/${id}`,
+        url: `blog-content/${id}`,
         method: "PUT",
         body: data,
       }),
@@ -165,7 +165,7 @@ export const api = createApi({
     }),
     deleteBlog: build.mutation({
       query: (id) => ({
-        url: `blogs/${id}`,
+        url: `blog-content/${id}`,
         method: "DELETE",
       }),
       invalidatesTags: ["Blogs"],
@@ -173,70 +173,106 @@ export const api = createApi({
     
     // Product endpoints
     getProducts: build.query({
-      query: () => "products",
+      query: () => ({
+        url: "product-catalog",
+        headers: {
+          "Content-Type": "application/json",
+          "authorization": `ApiKey ${process.env.REACT_APP_API_SECRET_TOKEN}`,
+        },
+      }),
       providesTags: ["Products"],
     }),
     createProduct: build.mutation({
       query: (data) => ({
-        url: "products",
+        url: "product-catalog",
         method: "POST",
         body: data,
+        headers: {
+          "Content-Type": "application/json",
+          "authorization": `ApiKey ${process.env.REACT_APP_API_SECRET_TOKEN}`,
+        },
       }),
       invalidatesTags: ["Products"],
     }),
     updateProduct: build.mutation({
       query: ({ id, ...data }) => ({
-        url: `products/${id}`,
+        url: `product-catalog/${id}`,
         method: "PUT",
         body: data,
+        headers: {
+          "Content-Type": "application/json",
+          "authorization": `ApiKey ${process.env.REACT_APP_API_SECRET_TOKEN}`,
+        },
       }),
       invalidatesTags: ["Products"],
     }),
     deleteProduct: build.mutation({
       query: (id) => ({
-        url: `products/${id}`,
+        url: `product-catalog/${id}`,
         method: "DELETE",
+        headers: {
+          "Content-Type": "application/json",
+          "authorization": `ApiKey ${process.env.REACT_APP_API_SECRET_TOKEN}`,
+        },
       }),
       invalidatesTags: ["Products"],
     }),
     
     // Order endpoints
     getOrders: build.query({
-      query: () => "orders",
+      query: () => ({
+        url: "order-management",
+        headers: {
+          "Content-Type": "application/json",
+          "authorization": `ApiKey ${process.env.REACT_APP_API_SECRET_TOKEN}`,
+        },
+      }),
       providesTags: ["Orders"],
     }),
     createOrder: build.mutation({
       query: (data) => ({
-        url: "orders",
+        url: "order-management",
         method: "POST",
         body: data,
+        headers: {
+          "Content-Type": "application/json",
+          "authorization": `ApiKey ${process.env.REACT_APP_API_SECRET_TOKEN}`,
+        },
       }),
       invalidatesTags: ["Orders"],
     }),
     updateOrder: build.mutation({
       query: ({ id, data }) => ({
-        url: `orders/${id}`,
+        url: `order-management/${id}`,
         method: "PUT",
         body: data,
+        headers: {
+          "Content-Type": "application/json",
+          "authorization": `ApiKey ${process.env.REACT_APP_API_SECRET_TOKEN}`,
+        },
       }),
       invalidatesTags: ["Orders"],
     }),
     deleteOrder: build.mutation({
       query: (id) => ({
-        url: `orders/${id}`,
+        url: `order-management/${id}`,
         method: "DELETE",
+        headers: {
+          "Content-Type": "application/json",
+          "authorization": `ApiKey ${process.env.REACT_APP_API_SECRET_TOKEN}`,
+        },
       }),
       invalidatesTags: ["Orders"],
     }),
     
     // Enquiry endpoints
     getEnquiries: build.query({
-      query: () => "enquiries",
+      query: () => "enquiry-handling",
       providesTags: ["Enquiries"],
     }),
     createEnquiry: build.mutation({
       query: (data) => ({
-        url: "enquiries",
+        url: "enquiry-handling",
         method: "POST",
         body: data,
       }),
@@ -244,7 +280,7 @@ export const api = createApi({
     }),
     updateEnquiry: build.mutation({
       query: ({ id, ...data }) => ({
-        url: `enquiries/${id}`,
+        url: `enquiry-handling/${id}`,
         method: "PUT",
         body: data,
       }),
@@ -252,7 +288,7 @@ export const api = createApi({
     }),
     deleteEnquiry: build.mutation({
       query: (id) => ({
-        url: `enquiries/${id}`,
+        url: `enquiry-handling/${id}`,
         method: "DELETE",
       }),
       invalidatesTags: ["Enquiries"],
@@ -260,13 +296,13 @@ export const api = createApi({
     
     // Notification endpoints
     getNotifications: build.query({
-      query: () => "notifications",
+      query: () => "notification-center",
       providesTags: ["Notifications"],
       pollingInterval: 30000,
     }),
     createNotification: build.mutation({
       query: (data) => ({
-        url: "notifications",
+        url: "notification-center",
         method: "POST",
         body: data,
       }),
@@ -274,7 +310,7 @@ export const api = createApi({
     }),
     updateNotification: build.mutation({
       query: ({ id, ...data }) => ({
-        url: `notifications/${id}`,
+        url: `notification-center/${id}`,
         method: "PATCH",
         body: data,
       }),
@@ -298,21 +334,25 @@ export const api = createApi({
     
     // Visitors endpoints
     getVisitors: build.query({
-      query: () => "visitors",
+      query: () => "visitor-tracking",
       providesTags: ["Visitors"],
       pollingInterval: 30000,
     }),
     createVisitor: build.mutation({
       query: (data) => ({
-        url: "visitors",
+        url: "visitor-tracking",
         method: "POST",
         body: data,
+        headers: {
+          "Content-Type": "application/json",
+          "authorization": `ApiKey ${process.env.REACT_APP_API_SECRET_TOKEN}`,
+        },
       }),
       invalidatesTags: ["Visitors"],
     }),
     updateVisitor: build.mutation({
       query: ({ id, ...data }) => ({
-        url: `visitors/${id}`,
+        url: `visitor-tracking/${id}`,
         method: "PUT",
         body: data,
       }),
@@ -320,7 +360,7 @@ export const api = createApi({
     }),
     deleteVisitor: build.mutation({
       query: (id) => ({
-        url: `visitors/${id}`,
+        url: `visitor-tracking/${id}`,
         method: "DELETE",
       }),
       invalidatesTags: ["Visitors"],
@@ -328,7 +368,7 @@ export const api = createApi({
     
     // User Statistics endpoints
     getUserStatistics: build.query({
-      query: () => "user-statistics/overall",
+      query: () => "user-analytics/overall",
       providesTags: ["UserStatistics"],
     }),
     
@@ -338,23 +378,23 @@ export const api = createApi({
     }),
     
     getVisitorStats: build.query({
-      query: () => "visitors/statistics",
+      query: () => "visitor-tracking/statistics",
       providesTags: ["Visitors"],
     }),
     
     // Geography endpoints
     getGeography: build.query({
-      query: () => "visitors/geography",
+      query: () => "visitor-tracking/geography",
       providesTags: ["Geography"]
     }),
     
     // Card endpoints
     getCards: build.query({
-      query: () => "cards",
+      query: () => "card-system",
       providesTags: ["Cards"],
     }),
     getCard: build.query({
-      query: (id) => `cards/${id}`,
+      query: (id) => `card-system/${id}`,
       providesTags: (result, error, id) => [{ type: "Cards", id }],
     }),
     uploadCardImage: build.mutation({
@@ -363,7 +403,7 @@ export const api = createApi({
         formData.append("image", imageFile);
         console.log('Uploading card image file:', imageFile.name, imageFile.type, imageFile.size);
         return {
-          url: "cards/upload-image",
+          url: "card-system/upload-image",
           method: "POST",
           body: formData,
           formData: true,
@@ -372,7 +412,7 @@ export const api = createApi({
     }),
     createCard: build.mutation({
       query: (data) => ({
-        url: "cards",
+        url: "card-system",
         method: "POST",
         body: data,
       }),
@@ -380,7 +420,7 @@ export const api = createApi({
     }),
     updateCard: build.mutation({
       query: ({ id, ...data }) => ({
-        url: `cards/${id}`,
+        url: `card-system/${id}`,
         method: "PUT",
         body: data,
       }),
@@ -391,7 +431,7 @@ export const api = createApi({
     }),
     deleteCard: build.mutation({
       query: (id) => ({
-        url: `cards/${id}`,
+        url: `card-system/${id}`,
         method: "DELETE",
       }),
       invalidatesTags: ["Cards"],

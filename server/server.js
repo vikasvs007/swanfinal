@@ -12,6 +12,27 @@ const fs = require('fs');
 const { connectToDatabase } = require('./utils/dbConnection');
 const validateEnvironment = require('./utils/validateEnv');
 
+// Load environment variables
+const isProduction = process.env.NODE_ENV === 'production';
+if (isProduction) {
+  // Try to load production env first
+  try {
+    dotenv.config({ path: '.env.production' });
+    console.log('Loaded production environment variables');
+  } catch (err) {
+    console.warn('Could not load .env.production:', err);
+    // Fallback to regular .env
+    dotenv.config();
+    console.log('Loaded default environment variables');
+  }
+} else {
+  dotenv.config();
+  console.log('Loaded development environment variables');
+}
+
+// Validate environment variables
+validateEnvironment();
+
 // Configure environment variables
 dotenv.config();
 
@@ -55,7 +76,7 @@ const authRoutes = require('./routes/auth');
 // Set up CORS properly for both HTTP and HTTPS
 app.use(cors({
   origin: process.env.NODE_ENV === 'production' ? 
-    process.env.CLIENT_URL : 'http://localhost:3000',
+    'https://swanfinal-1.onrender.com' : 'http://localhost:3000',
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'],
   allowedHeaders: ['Content-Type', 'Authorization'],
   credentials: true // Important for cookies
@@ -104,17 +125,17 @@ app.get('/', (req, res) => {
   res.json({
     message: 'Welcome to the CRUD API',
     endpoints: {
-      auth: '/api/auth',
-      users: '/api/users',
-      products: '/api/products',
-      orders: '/api/orders',
-      enquiries: '/api/enquiries',
-      notifications: '/api/notifications',
-      activeUsers: '/api/active-users',
-      visitors: '/api/visitors',
-      userStatistics: '/api/user-statistics',
-      blogs: '/api/blogs',
-      cards: '/api/cards'
+      auth: '/api/swan-authentication',
+      users: '/api/swan-user-management',
+      products: '/api/swan-product-catalog',
+      orders: '/api/swan-order-management',
+      enquiries: '/api/swan-enquiry-handling',
+      notifications: '/api/swan-notification-center',
+      activeUsers: '/api/swan-active-users',
+      visitors: '/api/swan-visitor-tracking',
+      userStatistics: '/api/swan-user-analytics',
+      blogs: '/api/swan-blog-content',
+      cards: '/api/swan-card-system'
     }
   });
 });
@@ -129,18 +150,31 @@ const checkDatabaseConnection = (req, res, next) => {
   next();
 };
 
-// API routes with database connection check
-app.use('/api/auth', checkDatabaseConnection, authRoutes);
-app.use('/api/users', checkDatabaseConnection, userRoutes);
-app.use('/api/products', checkDatabaseConnection, productRoutes);
-app.use('/api/orders', checkDatabaseConnection, orderRoutes);
-app.use('/api/enquiries', checkDatabaseConnection, enquiryRoutes);
-app.use('/api/notifications', checkDatabaseConnection, notificationRoutes);
+// API routes
+const apiRoutes = {
+  users: '/api/user-management',
+  products: '/api/product-catalog',
+  orders: '/api/order-management',
+  enquiries: '/api/enquiry-handling',
+  notifications: '/api/notification-center',
+  activeUsers: '/api/active-users',
+  visitors: '/api/visitor-tracking',
+  userAnalytics: '/api/user-analytics',
+  blogContent: '/api/blog-content',
+  cardSystem: '/api/card-system'
+};
+
+// Apply routes
+app.use('/api/user-management', checkDatabaseConnection, userRoutes);
+app.use('/api/product-catalog', checkDatabaseConnection, productRoutes);
+app.use('/api/order-management', checkDatabaseConnection, orderRoutes);
+app.use('/api/enquiry-handling', checkDatabaseConnection, enquiryRoutes);
+app.use('/api/notification-center', checkDatabaseConnection, notificationRoutes);
 app.use('/api/active-users', checkDatabaseConnection, activeUserRoutes);
-app.use('/api/visitors', checkDatabaseConnection, visitorRoutes);
-app.use('/api/user-statistics', checkDatabaseConnection, userStatisticsRoutes);
-app.use('/api/blogs', checkDatabaseConnection, blogRoutes);
-app.use('/api/cards', checkDatabaseConnection, cardRoutes);
+app.use('/api/visitor-tracking', checkDatabaseConnection, visitorRoutes);
+app.use('/api/user-analytics', checkDatabaseConnection, userStatisticsRoutes);
+app.use('/api/blog-content', checkDatabaseConnection, blogRoutes);
+app.use('/api/card-system', checkDatabaseConnection, cardRoutes);
 
 // External API proxy route - this keeps API tokens server-side
 // Apply rate limiting and caching to improve performance and prevent abuse

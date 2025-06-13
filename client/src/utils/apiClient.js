@@ -47,25 +47,25 @@ apiClient.interceptors.response.use(
 // API methods for data fetching
 const api = {
   // Users
-  getUsers: () => apiClient.get('/users'),
-  getUserById: (id) => apiClient.get(`/users/${id}`),
-  createUser: (userData) => apiClient.post('/users', userData),
-  updateUser: (id, userData) => apiClient.put(`/users/${id}`, userData),
-  deleteUser: (id) => apiClient.delete(`/users/${id}`),
+  getUsers: () => apiClient.get('/user-management'),
+  getUserById: (id) => apiClient.get(`/user-management/${id}`),
+  createUser: (userData) => apiClient.post('/user-management', userData),
+  updateUser: (id, userData) => apiClient.put(`/user-management/${id}`, userData),
+  deleteUser: (id) => apiClient.delete(`/user-management/${id}`),
   
   // Products
-  getProducts: () => apiClient.get('/products'),
-  getProductById: (id) => apiClient.get(`/products/${id}`),
-  createProduct: (productData) => apiClient.post('/products', productData),
-  updateProduct: (id, productData) => apiClient.put(`/products/${id}`, productData),
-  deleteProduct: (id) => apiClient.delete(`/products/${id}`),
+  getProducts: () => apiClient.get('/product-catalog'),
+  getProductById: (id) => apiClient.get(`/product-catalog/${id}`),
+  createProduct: (productData) => apiClient.post('/product-catalog', productData),
+  updateProduct: (id, productData) => apiClient.put(`/product-catalog/${id}`, productData),
+  deleteProduct: (id) => apiClient.delete(`/product-catalog/${id}`),
   
   // Orders
-  getOrders: () => apiClient.get('/orders'),
-  getOrderById: (id) => apiClient.get(`/orders/${id}`),
-  createOrder: (orderData) => apiClient.post('/orders', orderData),
-  updateOrder: (id, orderData) => apiClient.put(`/orders/${id}`, orderData),
-  deleteOrder: (id) => apiClient.delete(`/orders/${id}`),
+  getOrders: () => apiClient.get('/order-management'),
+  getOrderById: (id) => apiClient.get(`/order-management/${id}`),
+  createOrder: (orderData) => apiClient.post('/order-management', orderData),
+  updateOrder: (id, orderData) => apiClient.put(`/order-management/${id}`, orderData),
+  deleteOrder: (id) => apiClient.delete(`/order-management/${id}`),
   
   // General request method for custom endpoints
   request: (method, endpoint, data = null, config = {}) => {
