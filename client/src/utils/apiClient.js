@@ -13,14 +13,40 @@ const apiClient = axios.create({
     : '/proxy/api',
   headers: {
     'Content-Type': 'application/json',
-    // Add API token for production environment
-    ...(process.env.NODE_ENV === 'production' && {
-      'Authorization': `Bearer ${process.env.REACT_APP_API_SECRET_TOKEN || 'swanapi_sec_token_6363163519'}`
-    })
   },
   // This is crucial for cookies to be sent with requests
   withCredentials: true
 });
+
+// Add request interceptor for consistent header handling
+apiClient.interceptors.request.use(
+  (config) => {
+    // Get API token from environment or localStorage
+    const apiToken = process.env.REACT_APP_API_SECRET_TOKEN || localStorage.getItem('apiToken');
+    
+    // Always add API token in production
+    if (process.env.NODE_ENV === 'production' && apiToken) {
+      config.headers['Authorization'] = `ApiKey ${apiToken}`;
+    }
+    
+    // Log request details in production for debugging
+    if (process.env.NODE_ENV === 'production') {
+      console.log('[API Request]', {
+        url: config.url,
+        method: config.method,
+        headers: config.headers,
+        baseURL: config.baseURL,
+        data: config.data
+      });
+    }
+    
+    return config;
+  },
+  (error) => {
+    console.error('[API Request Error]', error);
+    return Promise.reject(error);
+  }
+);
 
 // Add a response interceptor for error handling
 apiClient.interceptors.response.use(
@@ -30,20 +56,38 @@ apiClient.interceptors.response.use(
     if (error.response) {
       // Server responded with a status code outside of 2xx range
       if (error.response.status === 401) {
-        // Unauthorized - could trigger a logout or authentication flow
-        console.error('Authentication error:', error.response.data.message);
+        console.error('[API Error] Authentication error:', error.response.data.message);
+        // Clear API token on authentication error
+        localStorage.removeItem('apiToken');
         // Optionally redirect to login page
         // window.location.href = '/login';
       } else if (error.response.status === 403) {
-        // Forbidden - user doesn't have permission
-        console.error('Permission denied:', error.response.data.message);
+        console.error('[API Error] Permission denied:', error.response.data.message);
+      } else if (error.response.status === 0) {
+        console.error('[API Error] CORS or network error - no response received');
+      }
+      
+      // Log detailed error in production
+      if (process.env.NODE_ENV === 'production') {
+        console.error('[API Error Details]', {
+          status: error.response.status,
+          statusText: error.response.statusText,
+          data: error.response.data,
+          headers: error.response.headers,
+          config: {
+            url: error.config.url,
+            method: error.config.method,
+            headers: error.config.headers,
+            data: error.config.data
+          }
+        });
       }
     } else if (error.request) {
       // Request was made but no response received
-      console.error('Network error - no response received from server');
+      console.error('[API Error] Network error - no response received from server');
     } else {
       // Error in setting up the request
-      console.error('Request error:', error.message);
+      console.error('[API Error] Request error:', error.message);
     }
     
     return Promise.reject(error);
@@ -73,6 +117,25 @@ const api = {
   updateOrder: (id, orderData) => apiClient.put(`/orders/update/${id}`, orderData),
   deleteOrder: (id) => apiClient.delete(`/orders/remove/${id}`),
   
+  // Blog endpoints
+  getBlogs: () => apiClient.get('/v1/data/blogs/posts'),
+  getBlogById: (id) => apiClient.get(`/v1/data/blogs/posts/${id}`),
+  getBlogBySlug: (slug) => apiClient.get(`/v1/data/blogs/posts/slug/${slug}`),
+  getBlogCategories: () => apiClient.get('/v1/data/blogs/categories'),
+  getBlogTags: () => apiClient.get('/v1/data/blogs/tags'),
+  uploadBlogImage: (imageFile) => {
+    const formData = new FormData();
+    formData.append('image', imageFile);
+    return apiClient.post('/v1/data/blogs/images/upload', formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data'
+      }
+    });
+  },
+  createBlog: (blogData) => apiClient.post('/v1/data/blogs/posts/create', blogData),
+  updateBlog: (id, blogData) => apiClient.put(`/v1/data/blogs/posts/update/${id}`, blogData),
+  deleteBlog: (id) => apiClient.delete(`/v1/data/blogs/posts/remove/${id}`),
+  
   // General request method for custom endpoints
   request: (method, endpoint, data = null, config = {}) => {
     method = method.toLowerCase();
@@ -91,6 +154,43 @@ const api = {
       throw new Error(`Unsupported method: ${method}`);
     }
   }
+};
+
+/**
+ * Verify API configuration and log any issues
+ * This should be called during app initialization
+ */
+export const verifyApiConfig = () => {
+  const config = {
+    baseURL: process.env.REACT_APP_BASE_URL,
+    apiToken: process.env.REACT_APP_API_SECRET_TOKEN,
+    environment: process.env.NODE_ENV
+  };
+
+  // Log configuration status
+  console.log('[API Config] Current configuration:', {
+    ...config,
+    apiToken: config.apiToken ? 'Present' : 'Missing',
+    baseURL: config.baseURL || 'Not set'
+  });
+
+  // Check for required configuration
+  const issues = [];
+  
+  if (!config.baseURL) {
+    issues.push('REACT_APP_BASE_URL is not set');
+  }
+  
+  if (config.environment === 'production' && !config.apiToken) {
+    issues.push('REACT_APP_API_SECRET_TOKEN is not set in production');
+  }
+
+  if (issues.length > 0) {
+    console.error('[API Config] Configuration issues found:', issues);
+    return false;
+  }
+
+  return true;
 };
 
 export default api; 

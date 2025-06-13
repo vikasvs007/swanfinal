@@ -214,46 +214,27 @@ export const api = createApi({
           method: "POST",
           body: formData,
           formData: true,
-          // Remove content-type header so browser can set it with boundary for multipart/form-data
           prepareHeaders: (headers) => {
             headers.delete('Content-Type');
-            // Always add authorization in production
-            if (process.env.NODE_ENV === 'production') {
-              headers.set('Authorization', 'Bearer development_token');
-            }
             return headers;
           },
         };
       },
     }),
     createBlog: build.mutation({
-      query: (data) => {
-        // Normalize data for server validation
-        const normalizedData = normalizeMutationData(data, {
-          preserveEmpty: true,
-        });
-        
-        return {
-          url: "v1/data/blogs/posts",
-          method: "POST",
-          body: normalizedData,
-        };
-      },
+      query: (data) => ({
+        url: "v1/data/blogs/posts/create",
+        method: "POST",
+        body: data,
+      }),
       invalidatesTags: ["Blogs"],
     }),
     updateBlog: build.mutation({
-      query: ({ id, ...data }) => {
-        // Normalize data for server validation
-        const normalizedData = normalizeMutationData(data, {
-          preserveEmpty: true,
-        });
-        
-        return {
-          url: `v1/data/blogs/posts/update/${id}`, // Corrected URL path
-          method: "PUT",
-          body: normalizedData,
-        };
-      },
+      query: ({ id, ...data }) => ({
+        url: `v1/data/blogs/posts/update/${id}`,
+        method: "PUT",
+        body: data,
+      }),
       invalidatesTags: (result, error, { id }) => [
         "Blogs",
         { type: "Blogs", id }

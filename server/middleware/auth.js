@@ -120,12 +120,6 @@ const adminAuth = async (req, res, next) => {
 
 // Enhanced API key/token authentication (for programmatic access)
 const apiKeyAuth = (req, res, next) => {
-  // Allow OPTIONS requests to pass through for CORS preflight
-  if (req.method === 'OPTIONS') {
-    console.log('[API_KEY_AUTH] Bypassing authentication for OPTIONS preflight request');
-    return next();
-  }
-
   try {
     // Get token from header and validate format
     const authHeader = req.header('Authorization');

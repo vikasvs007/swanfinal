@@ -111,37 +111,44 @@ app.use((req, res, next) => {
     'https://www.swanfinal-1.onrender.com',
     'https://swanfinal.onrender.com',
     'https://www.swanfinal.onrender.com',
-    'http://localhost:3000'
-  ];
+    'http://localhost:3000',
+    'https://swanfinal-1.onrender.com',
+    'https://admin.swansort.com',
+    'https://www.admin.swansort.com',
+    'https://swansorter.com',
+    'https://www.swansorter.com',
+    process.env.FRONTEND_URL // Allow dynamic frontend URL from environment
+  ].filter(Boolean); // Remove any undefined/null values
   
   // Production debugging - log all request info
   if (process.env.NODE_ENV === 'production') {
-    console.log(`[CORS Debug] Full request info:`);
-    console.log(`- Method: ${req.method}`);
-    console.log(`- Path: ${req.path}`);
-    console.log(`- Origin: ${origin}`);
-    console.log(`- Host: ${req.headers.host}`);
-    console.log(`- User-Agent: ${req.headers['user-agent']}`);
+    console.log(`[CORS Debug] Allowed Origins:`, allowedOrigins);
+    console.log(`[CORS Debug] Frontend URL from env:`, process.env.FRONTEND_URL);
   }
   
   // In both production and development, properly handle CORS
   if (origin) {
-    // If origin is provided, set it explicitly (required for credentials: 'include')
-    res.setHeader('Access-Control-Allow-Origin', origin);
-    // Important: When using credentials, Access-Control-Allow-Origin cannot be '*'
-    res.setHeader('Access-Control-Allow-Credentials', 'true');
+    // Check if origin is in allowed list
+    if (allowedOrigins.includes(origin)) {
+      res.setHeader('Access-Control-Allow-Origin', origin);
+      res.setHeader('Access-Control-Allow-Credentials', 'true');
+      if (process.env.NODE_ENV === 'production') {
+        console.log(`[CORS] Allowed request from origin: ${origin}`);
+      }
+    } else {
+      console.warn(`[CORS] Blocked request from unauthorized origin: ${origin}`);
+      return res.status(403).json({ 
+        error: 'CORS not allowed',
+        message: 'Request from unauthorized origin'
+      });
+    }
   } else if (process.env.NODE_ENV === 'production') {
     // In production, be more permissive if no origin is provided
-    // This isn't ideal for security but helps with compatibility
     res.setHeader('Access-Control-Allow-Origin', '*');
     console.log('[CORS] No origin in request, using * wildcard for CORS');
   } else {
     // For development and testing with no origin
     res.setHeader('Access-Control-Allow-Origin', 'http://localhost:3000');
-    res.setHeader('Access-Control-Allow-Origin', 'https://swanfinal.onrender.com');
-    res.setHeader('Access-Control-Allow-Origin', 'https://www.swanfinal.onrender.com');
-    res.setHeader('Access-Control-Allow-Origin', 'https://swanfinal-1.onrender.com');
-    res.setHeader('Access-Control-Allow-Origin', 'https://www.swanfinal-1.onrender.com');
   }
   
   // Set other CORS headers - be explicit about allowed methods and headers
