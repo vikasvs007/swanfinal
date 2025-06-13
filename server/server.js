@@ -7,6 +7,7 @@ const trackActivity = require('./middleware/trackActivity');
 const apiProxy = require('./middleware/apiProxy');
 const { proxyRateLimit } = require('./middleware/rateLimit');
 const { cacheMiddleware } = require('./middleware/apiCache');
+const { combinedAuth } = require('./middleware/auth');
 const path = require('path');
 const fs = require('fs');
 const { connectToDatabase } = require('./utils/dbConnection');
@@ -72,18 +73,28 @@ const blogRoutes = require('./routes/blogs');
 const cardRoutes = require('./routes/cards');
 const authRoutes = require('./routes/auth');
 
+// Add this at the top with other constants
+const VALID_TOKEN = 'swan-secret-token-2024';
+
 // Middleware
 // Set up CORS properly for both HTTP and HTTPS
 app.use(cors({
-  origin: process.env.NODE_ENV === 'production' ? 
-    'https://swanfinal-1.onrender.com' : 'http://localhost:3000',
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'],
-  allowedHeaders: ['Content-Type', 'Authorization'],
-  credentials: true // Important for cookies
+  origin: ['http://localhost:3000', 'http://localhost:5173', 'http://127.0.0.1:5173', 'http://127.0.0.1:3000'],
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
+  credentials: true, // Important for cookies
+  preflightContinue: false,
+  optionsSuccessStatus: 204
 }));
 
 // Add security headers for HTTPS
 app.use((req, res, next) => {
+  // Set security headers
+  res.setHeader('Access-Control-Allow-Credentials', 'true');
+  res.setHeader('Access-Control-Allow-Origin', req.headers.origin || 'http://localhost:3000');
+  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, PATCH, OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With');
+  
   // Force HTTPS in production
   if (process.env.NODE_ENV === 'production' && !req.secure && req.headers['x-forwarded-proto'] !== 'https') {
     res.setHeader('Strict-Transport-Security', 'max-age=31536000; includeSubDomains; preload');
@@ -124,19 +135,19 @@ connectToDatabase()
 app.get('/', (req, res) => {
   res.json({
     message: 'Welcome to the CRUD API',
-    endpoints: {
-      auth: '/api/swan-authentication',
-      users: '/api/swan-user-management',
-      products: '/api/swan-product-catalog',
-      orders: '/api/swan-order-management',
-      enquiries: '/api/swan-enquiry-handling',
-      notifications: '/api/swan-notification-center',
-      activeUsers: '/api/swan-active-users',
-      visitors: '/api/swan-visitor-tracking',
-      userStatistics: '/api/swan-user-analytics',
-      blogs: '/api/swan-blog-content',
-      cards: '/api/swan-card-system'
-    }
+    // endpoints: {
+    //   auth: '/api/swan-authentication',
+    //   users: '/api/swan-user-management',
+    //   products: '/api/swan-product-catalog',
+    //   orders: '/api/swan-order-management',
+    //   enquiries: '/api/swan-enquiry-handling',
+    //   notifications: '/api/swan-notification-center',
+    //   activeUsers: '/api/swan-active-users',
+    //   visitors: '/api/swan-visitor-tracking',
+    //   userStatistics: '/api/swan-user-analytics',
+    //   blogs: '/api/swan-blog-content',
+    //   cards: '/api/swan-card-system'
+    // }
   });
 });
 
@@ -148,6 +159,52 @@ const checkDatabaseConnection = (req, res, next) => {
     });
   }
   next();
+};
+
+// Authentication middleware for POST and PUT requests
+const requireAuth = (req, res, next) => {
+  // For testing purposes, log the request details
+  console.log('Request Method:', req.method);
+  console.log('Request Headers:', req.headers);
+  console.log('Request Body:', req.body);
+
+  if (req.method === 'POST' || req.method === 'PUT') {
+    // Check for Authorization header
+    const authHeader = req.headers.authorization;
+    
+    if (!authHeader) {
+      return res.status(401).json({
+        success: false,
+        message: 'No authorization header'
+      });
+    }
+
+    // Extract token
+    const token = authHeader.startsWith('Bearer ') 
+      ? authHeader.substring(7) 
+      : authHeader;
+
+    if (!token) {
+      return res.status(401).json({
+        success: false,
+        message: 'No token provided'
+      });
+    }
+
+    // Verify the token
+    if (token !== VALID_TOKEN) {
+      return res.status(401).json({
+        success: false,
+        message: 'Invalid token'
+      });
+    }
+
+    // If token is valid, proceed
+    req.user = { id: 'verified-user' };
+    next();
+  } else {
+    next();
+  }
 };
 
 // API routes
@@ -164,17 +221,17 @@ const apiRoutes = {
   cardSystem: '/api/card-system'
 };
 
-// Apply routes
-app.use('/api/user-management', checkDatabaseConnection, userRoutes);
-app.use('/api/product-catalog', checkDatabaseConnection, productRoutes);
-app.use('/api/order-management', checkDatabaseConnection, orderRoutes);
-app.use('/api/enquiry-handling', checkDatabaseConnection, enquiryRoutes);
-app.use('/api/notification-center', checkDatabaseConnection, notificationRoutes);
-app.use('/api/active-users', checkDatabaseConnection, activeUserRoutes);
-app.use('/api/visitor-tracking', checkDatabaseConnection, visitorRoutes);
-app.use('/api/user-analytics', checkDatabaseConnection, userStatisticsRoutes);
-app.use('/api/blog-content', checkDatabaseConnection, blogRoutes);
-app.use('/api/card-system', checkDatabaseConnection, cardRoutes);
+// Apply routes with authentication
+app.use('/api/user-management', checkDatabaseConnection, requireAuth, userRoutes);
+app.use('/api/product-catalog', checkDatabaseConnection, requireAuth, productRoutes);
+app.use('/api/order-management', checkDatabaseConnection, requireAuth, orderRoutes);
+app.use('/api/enquiry-handling', checkDatabaseConnection, requireAuth, enquiryRoutes);
+app.use('/api/notification-center', checkDatabaseConnection, requireAuth, notificationRoutes);
+app.use('/api/active-users', checkDatabaseConnection, requireAuth, activeUserRoutes);
+app.use('/api/visitor-tracking', checkDatabaseConnection, requireAuth, visitorRoutes);
+app.use('/api/user-analytics', checkDatabaseConnection, requireAuth, userStatisticsRoutes);
+app.use('/api/blog-content', checkDatabaseConnection, requireAuth, blogRoutes);
+app.use('/api/card-system', checkDatabaseConnection, requireAuth, cardRoutes);
 
 // External API proxy route - this keeps API tokens server-side
 // Apply rate limiting and caching to improve performance and prevent abuse

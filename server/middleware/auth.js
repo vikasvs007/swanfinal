@@ -4,20 +4,14 @@ const User = require('../models/User');
 
 const auth = async (req, res, next) => {
   try {
-    // Get token from cookie instead of Authorization header
-    const token = req.cookies.auth_token;
+    // Get token from cookie or Authorization header
+    const token = req.cookies.auth_token || (req.header('Authorization') && req.header('Authorization').replace('Bearer ', ''));
     
     if (!token) {
-      // Set a flag that there's no auth token instead of immediately returning
-      req.noAuth = true;
-      // For routes that absolutely require authentication, the controller will check
-      // Allow execution to continue to the route handler
-      return next();
-    }
-    
-    // Skip auth for public routes
-    if (req.skipAuth) {
-      return next();
+      return res.status(401).json({
+        success: false,
+        message: 'Authentication required'
+      });
     }
 
     // Verify token
@@ -164,6 +158,12 @@ const apiKeyAuth = (req, res, next) => {
 
 // Combined auth middleware that checks for either cookie auth or API key
 const combinedAuth = async (req, res, next) => {
+  // In development, allow requests without auth for testing
+  if (process.env.NODE_ENV !== 'production') {
+    console.log('Development mode: Auth check skipped');
+    return next();
+  }
+
   // Check for API key first if it's programmatic access
   const authHeader = req.header('Authorization');
   
@@ -173,22 +173,8 @@ const combinedAuth = async (req, res, next) => {
     return apiKeyAuth(req, res, next);
   }
   
-  // For debugging - log the auth state
-  if (process.env.NODE_ENV === 'development') {
-    console.log('Auth method:', req.cookies.auth_token ? 'cookie' : (authHeader ? 'header' : 'none'));
-  }
-  
   // Fall back to cookie authentication
-  try {
-    await auth(req, res, next);
-  } catch (error) {
-    // If authentication fails and is a route requiring authentication, return a clear error
-    console.error('Auth error:', error.message);
-    return res.status(401).json({
-      success: false,
-      message: 'Authentication required. Please login.'
-    });
-  }
+  return auth(req, res, next);
 };
 
 // Rate limiting middleware
