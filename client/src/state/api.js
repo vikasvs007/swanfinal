@@ -584,12 +584,12 @@ export const api = createApi({
           method: "POST",
           body: formData,
           formData: true,
-          // Remove content-type header so browser can set it with boundary for multipart/form-data
-          prepareHeaders: (headers) => {
-            headers.delete('Content-Type'); // Allow browser to set Content-Type for FormData
-            // Authorization is handled by the global prepareHeaders
-            return headers;
-          },
+          // // Remove content-type header so browser can set it with boundary for multipart/form-data
+          // prepareHeaders: (headers) => {
+          //   headers.delete('Content-Type'); // Allow browser to set Content-Type for FormData
+          //   // Authorization is handled by the global prepareHeaders
+          //   return headers;
+          // },
         };
       },
     }),

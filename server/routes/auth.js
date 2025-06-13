@@ -25,7 +25,6 @@ const COOKIE_OPTIONS = {
 };
 
 /**
- * @route   POST /api/auth/login
  * @desc    Authenticate user & get token via secure cookie
  * @access  Public
  */

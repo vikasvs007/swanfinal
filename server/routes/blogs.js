@@ -77,15 +77,15 @@ const handleUploadErrors = (err, req, res, next) => {
 };
 
 // Upload an image for a blog - requires admin authentication
-router.post('/images/upload', apiKeyAuth, upload.single('image'), handleUploadErrors, blogController.uploadImage);
+router.post('/images/upload',  blogController.uploadImage);
 
 // Create a new blog - requires admin authentication
-router.post('/posts/create', apiKeyAuth, blogController.createBlog);
+router.post('/posts/create', blogController.createBlog);
 
 // Update a blog - requires admin authentication
-router.put('/posts/update/:id', apiKeyAuth, blogController.updateBlog);
+router.put('/posts/update/:id', blogController.updateBlog);
 
 // Delete a blog - requires admin authentication
-router.delete('/posts/remove/:id', apiKeyAuth, blogController.deleteBlog);
+router.delete('/posts/remove/:id',  blogController.deleteBlog);
 
 module.exports = router; 

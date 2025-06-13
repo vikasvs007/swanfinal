@@ -296,7 +296,7 @@ connectToDatabase()
     // Mount routes after database connection is established
     app.use('/api/v1/auth', checkDatabaseConnection, authRoutes);
     app.use('/api/v1/data/users', checkDatabaseConnection, combinedAuth, userRoutes);
-    app.use('/api/v1/data/products', checkDatabaseConnection, productRoutes);
+    app.use('/api/v1/data/items', checkDatabaseConnection, productRoutes);
     app.use('/api/v1/data/orders', checkDatabaseConnection, combinedAuth, orderRoutes);
     app.use('/api/v1/data/inquiries', checkDatabaseConnection, combinedAuth, enquiryRoutes);
     app.use('/api/v1/data/notifications', checkDatabaseConnection, combinedAuth, notificationRoutes);
