@@ -76,7 +76,7 @@ const authRoutes = require('./routes/auth');
 // Set up CORS properly for both HTTP and HTTPS
 app.use(cors({
   origin: process.env.NODE_ENV === 'production' ? 
-    'https://swanfinal-1.onrender.com' : 'http://localhost:3000',
+    'https://admin.swansorter.com' : 'https://swanfinal-1.onrender.com',
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'],
   allowedHeaders: ['Content-Type', 'Authorization'],
   credentials: true // Important for cookies
