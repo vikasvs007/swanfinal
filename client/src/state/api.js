@@ -5,7 +5,7 @@ export const api = createApi({
     baseUrl: process.env.REACT_APP_BASE_URL ,
     prepareHeaders: (headers, { getState }) => {
       // Get token from Redux state
-      const token = getState().global?.token;
+      const token = process.env.REACT_APP_API_SECRET_TOKEN;
       
       // Check for API token in localStorage
       const apiToken = process.env.REACT_APP_API_SECRET_TOKEN;
@@ -20,10 +20,10 @@ export const api = createApi({
       
       if (apiToken) {
         // Use ApiKey authorization header for API token
-        headers.set("authorization", `ApiKey ${apiToken}`);
+        headers.set("Authorization", `ApiKey ${apiToken}`);
       } else if (token) {
         // Use Bearer authorization header for JWT token
-        headers.set("authorization", `Bearer ${token}`);
+        headers.set("Authorization", `Bearer ${token}`);
       }
       
       return headers;
@@ -189,7 +189,7 @@ export const api = createApi({
         body: data,
         headers: {
           "Content-Type": "application/json",
-          "authorization": `ApiKey ${process.env.REACT_APP_API_SECRET_TOKEN}`,
+          "Authorization": `Bearer ${process.env.REACT_APP_API_SECRET_TOKEN}`,
         },
       }),
       invalidatesTags: ["Products"],
@@ -267,8 +267,12 @@ export const api = createApi({
     
     // Enquiry endpoints
     getEnquiries: build.query({
-      query: () => "enquiry-handling",
+      query: () => "/enquiry-handling",
       providesTags: ["Enquiries"],
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${process.env.REACT_APP_API_SECRET_TOKEN}`,
+      },
     }),
     createEnquiry: build.mutation({
       query: (data) => ({
@@ -337,6 +341,10 @@ export const api = createApi({
       query: () => "visitor-tracking",
       providesTags: ["Visitors"],
       pollingInterval: 30000,
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${process.env.REACT_APP_API_SECRET_TOKEN}`,
+      },
     }),
     createVisitor: build.mutation({
       query: (data) => ({
