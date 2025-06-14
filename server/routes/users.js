@@ -2,7 +2,7 @@
 const express = require('express');
 const router = express.Router();
 const userController = require('../controllers/userController');
-const { combinedAuth, adminAuth } = require('../middleware/auth');
+const { combinedAuth, adminAuth, } = require('../middleware/auth');
 
 // Create a new user - public for registration
 router.post('/', userController.createUser);
