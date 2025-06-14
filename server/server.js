@@ -59,6 +59,29 @@ for (const dir of uploadDirs) {
 // Create Express app
 const app = express();
 
+// Add middleware to check for web console/Postman requests and token
+app.use((req, res, next) => {
+  // Check if the request is from web console or Postman
+  const isWebConsoleRequest = req.headers['x-web-console'] === 'true';
+  
+  if (isWebConsoleRequest) {
+    // Get the token from the header
+    const token = req.headers['x-api-token'];
+    
+    // Check if token exists and matches the expected value
+    if (!token || token !== 'swan_console_2024_secure_token_xyz789') {
+      return res.status(401).json({
+        message: 'Unauthorized: Invalid or missing token for web console access'
+      });
+    }
+    
+    // If token is valid, add the flag to the request object
+    req.isWebConsoleRequest = true;
+  }
+  
+  next();
+});
+
 // Import routes
 const userRoutes = require('./routes/users');
 const productRoutes = require('./routes/products');
