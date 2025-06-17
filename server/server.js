@@ -49,7 +49,7 @@ app.use((req, res, next) => {
   const isLikelyFromWebConsole = userAgent.includes('Mozilla') && !referer;
 
   // If request has 'x-web-console' header, treat it as Web Console or Postman
-  const isExplicitWebConsole = req.headers['x-web-console'] === 'true';
+  const isExplicitWebConsole = req.headers['Content-Type'] === 'application/json';
 
   if ((isLikelyFromWebConsole || isExplicitWebConsole) && req.method !== 'GET') {
     return res.status(403).json({ message: 'Forbidden: POST requests from web console or tools are blocked.' });
