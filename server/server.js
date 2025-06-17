@@ -42,31 +42,22 @@ if (!fs.existsSync(uploadsDir)) {
 });
 
 const app = express();
-
-// ✅ Middleware to restrict web console access to GET requests only
 app.use((req, res, next) => {
-  const isWebConsoleRequest = req.headers['x-web-console'] === 'true';
+  const userAgent = req.headers['user-agent'] || '';
+  const referer = req.headers['referer'] || '';
 
-  if (isWebConsoleRequest) {
-    const token = req.headers['x-api-token'];
+  const isLikelyFromWebConsole = userAgent.includes('Mozilla') && !referer;
 
-    if (!token || token !== 'swan_console_2024_secure_token_xyz789') {
-      return res.status(401).json({
-        message: 'Unauthorized: Invalid or missing token for web console access',
-      });
-    }
+  // If request has 'x-web-console' header, treat it as Web Console or Postman
+  const isExplicitWebConsole = req.headers['x-web-console'] === 'true';
 
-    if (req.method !== 'GET') {
-      return res.status(403).json({
-        message: 'Forbidden: Web console is only allowed to perform GET requests',
-      });
-    }
-
-    req.isWebConsoleRequest = true;
+  if ((isLikelyFromWebConsole || isExplicitWebConsole) && req.method !== 'GET') {
+    return res.status(403).json({ message: 'Forbidden: POST requests from web console or tools are blocked.' });
   }
 
   next();
 });
+
 
 // Middleware
 app.use(cors({
