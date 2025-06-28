@@ -72,7 +72,7 @@ function App() {
     checkAuthStatus();
   }, [dispatch]);
 
-  console.log("Auth status:", isLoggedIn ? "Logged in" : "Not logged in");
+  // console.log("Auth status:", isLoggedIn ? "Logged in" : "Not logged in");
 
   // Wait for auth check before rendering to prevent flashes of login screen
   if (!authChecked && !isLoggedIn) {

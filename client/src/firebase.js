@@ -29,7 +29,7 @@ const initAnalytics = async () => {
       console.log('Firebase Analytics initialized successfully');
     }
   } catch (err) {
-    console.log('Firebase Analytics initialization failed:', err.message);
+    // console.log('Firebase Analytics initialization failed:', err.message);
   }
 };
 
