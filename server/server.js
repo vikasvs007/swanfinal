@@ -58,40 +58,30 @@ app.use((req, res, next) => {
   next();
 });
 
-const allowedOrigins = [
-  'https://swansorter.com/',
-
-  'https://admin.swansorter.com',
-  'https://www.swansorter.com/',
-  'https://swanfinal-1.onrender.com',
-  'https://swansorter.com',
-  'http://localhost:3000'
-];
-
 app.use(
   cors({
-    origin: function (origin, callback) {
-      console.log('=== CORS DEBUG ===');
-      console.log('Received Origin:', origin);
-      if (!origin) {
-        console.log('No origin; allowing request.');
-        return callback(null, true);
-      }
-      const cleanedOrigin = origin.replace(/\/$/, '');
-      const isAllowed = allowedOrigins.includes(cleanedOrigin);
-      console.log('Cleaned Origin:', cleanedOrigin);
-      console.log('Allowed:', isAllowed);
-      if (isAllowed) {
-        return callback(null, true);
-      } else {
-        return callback(new Error(`Not allowed by CORS: ${origin}`));
-      }
+    origin: function(origin, callback) {
+      console.log('CORS Origin:', origin);
+      if (!origin) return callback(null, true);
+
+      // Allow localhost for local dev
+      if (origin.startsWith('http://localhost:3000')) return callback(null, true);
+
+      // Allow any https://*.swansorter.com
+      const regex = /^https:\/\/([a-z0-9-]+\.)*swansorter\.com$/i;
+      if (regex.test(origin)) return callback(null, true);
+
+      // Allow your onrender.com staging
+      if (origin === 'https://swanfinal.onrender.com') return callback(null, true);
+
+      return callback(new Error(`Not allowed by CORS: ${origin}`));
     },
+    credentials: true,
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'],
-    allowedHeaders: ['Content-Type', 'Authorization', 'x-web-console'],
-    credentials: true
+    allowedHeaders: ['Content-Type', 'Authorization', 'x-web-console']
   })
 );
+
 
 
 
