@@ -59,9 +59,10 @@ app.use((req, res, next) => {
 });
 
 const allowedOrigins = [
+  'https://swansorter.com/',
+
   'https://admin.swansorter.com',
   'https://www.swansorter.com/',
-  'https://swansorter.com/',
   'https://swanfinal-1.onrender.com',
   'https://swansorter.com',
   'http://localhost:3000'
