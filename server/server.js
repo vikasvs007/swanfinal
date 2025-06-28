@@ -43,7 +43,7 @@ if (!fs.existsSync(uploadsDir)) {
 
 const app = express();
 
-// Enhanced Web Console Detection Middleware (blocks console requests even from allowed origins)
+// STRICT Web Console Detection Middleware (blocks ALL console requests regardless of origin)
 app.use((req, res, next) => {
   const userAgent = req.headers['user-agent'] || '';
   const referer = req.headers['referer'] || '';
@@ -56,126 +56,147 @@ app.use((req, res, next) => {
     return next();
   }
 
-  // Web console detection patterns (regardless of origin)
-  const webConsoleIndicators = {
-    // Explicit web console header (your custom header)
-    explicitConsole: req.headers['x-web-console'] === 'vikasvs6363',
-    
-    // DevTools specific user agents
-    devToolsUserAgent: /chrome-devtools|firefox-devtools|safari-web-inspector|edge-devtools/i.test(userAgent),
-    
-    // Console-like request patterns
-    consoleRequestPattern: (
-      // Browser user agent but with console-like characteristics
-      userAgent.includes('Mozilla') && 
-      acceptHeader === '*/*' && 
-      !contentType.includes('application/json') &&
-      !referer.includes('/api/') // Not from your API documentation page
-    ),
-    
-    // Fetch API from console (common pattern)
-    consoleFetchPattern: (
-      userAgent.includes('Mozilla') &&
-      acceptHeader.includes('*/*') &&
-      !req.headers['sec-fetch-site'] && // Missing security headers that browsers normally send
-      !req.headers['sec-fetch-mode']
-    ),
-    
-    // Console XMLHttpRequest pattern
-    consoleXHRPattern: (
-      userAgent.includes('Mozilla') &&
-      acceptHeader === '*/*' &&
-      !req.headers['x-requested-with'] && // Missing common AJAX header
-      contentType === 'text/plain' // Console often sends as text/plain
-    ),
-    
-    // Missing standard browser security headers that legitimate requests have
-    missingSecurityHeaders: (
-      userAgent.includes('Mozilla') &&
-      !req.headers['sec-fetch-dest'] &&
-      !req.headers['sec-fetch-mode'] &&
-      !req.headers['sec-fetch-site'] &&
-      origin // Has origin but missing sec-fetch headers (suspicious)
-    ),
-    
-    // Direct fetch/XHR from console typically lacks proper referer context
-    suspiciousRefererPattern: (
-      origin && 
-      referer &&
-      !referer.includes('/') && // Very short referer
-      referer === origin // Referer exactly matches origin (often console)
-    )
-  };
-
-  // API tools detection (allow these even with suspicious patterns)
-  const toolUserAgents = /postman|insomnia|httpie|curl|wget|thunder|rest|api|postman-runtime|newman/i;
+  // API tools detection (allow these first)
+  const toolUserAgents = /postman|insomnia|httpie|curl|wget|thunder|rest|api|postman-runtime|newman|axios|node-fetch/i;
   const isApiTool = toolUserAgents.test(userAgent);
 
   // Allow known API tools
   if (isApiTool) {
+    console.log(`✅ Allowed API tool: ${userAgent.substring(0, 50)}`);
     return next();
   }
 
-  // Check for web console indicators
-  const detectedIndicators = Object.entries(webConsoleIndicators)
+  // STRICT console detection - blocks ALL console requests even from allowed origins
+  const consoleDetectionRules = {
+    // Rule 1: Explicit console indicators
+    explicitConsole: req.headers['x-web-console'] === 'vikasvs6363',
+    devToolsUserAgent: /chrome-devtools|firefox-devtools|safari-web-inspector|edge-devtools/i.test(userAgent),
+    
+    // Rule 2: Browser request WITHOUT referer (99% console indicator)
+    browserWithoutReferer: (
+      userAgent.includes('Mozilla') &&
+      origin && // Has origin (so it's from a browser)
+      !referer && // NO referer (major red flag)
+      !isApiTool // Not an API tool
+    ),
+    
+    // Rule 3: Missing ALL modern browser security headers
+    missingAllSecHeaders: (
+      userAgent.includes('Mozilla') &&
+      !req.headers['sec-fetch-site'] && 
+      !req.headers['sec-fetch-mode'] && 
+      !req.headers['sec-fetch-dest'] &&
+      origin && // Has origin but missing security context
+      !isApiTool
+    ),
+    
+    // Rule 4: Generic accept header with proper content-type (console fetch pattern)
+    consoleFetchPattern: (
+      userAgent.includes('Mozilla') &&
+      acceptHeader.includes('*/*') &&
+      contentType &&
+      !req.headers['sec-fetch-site'] &&
+      !isApiTool
+    ),
+    
+    // Rule 5: Browser with origin but referer equals origin exactly (console pattern)
+    refererEqualsOrigin: (
+      userAgent.includes('Mozilla') &&
+      origin &&
+      referer === origin && // Exact match (not a page URL)
+      !req.headers['sec-fetch-site'] &&
+      !isApiTool
+    ),
+    
+    // Rule 6: Missing user interaction headers that real browsers send
+    missingUserInteraction: (
+      userAgent.includes('Mozilla') &&
+      origin &&
+      !req.headers['sec-fetch-user'] && // No user interaction
+      !req.headers['sec-fetch-site'] &&
+      acceptHeader.includes('*/*') &&
+      !isApiTool
+    )
+  };
+
+  // Check which rules are triggered
+  const triggeredRules = Object.entries(consoleDetectionRules)
     .filter(([_, value]) => value)
     .map(([key]) => key);
 
-  // Block if any strong console indicator is present
-  const strongIndicators = ['explicitConsole', 'devToolsUserAgent'];
-  const hasStrongIndicator = detectedIndicators.some(indicator => 
-    strongIndicators.includes(indicator)
-  );
-
-  // Block if 2+ indicators or 1 strong indicator
-  if (hasStrongIndicator || detectedIndicators.length >= 2) {
-    console.log(`🚫 Blocked web console request:`, {
+  // STRICT BLOCKING: Block if ANY rule is triggered for browser requests
+  if (triggeredRules.length > 0 && userAgent.includes('Mozilla') && !isApiTool) {
+    console.log(`🚫 BLOCKED console request from origin: ${origin}`, {
       method: req.method,
       path: req.path,
       origin,
-      referer: referer.substring(0, 100),
-      userAgent: userAgent.substring(0, 100),
-      detectedIndicators,
-      headers: {
+      referer: referer || 'NO_REFERER',
+      userAgent: userAgent.substring(0, 80),
+      triggeredRules,
+      allHeaders: {
         accept: acceptHeader,
         contentType,
-        'sec-fetch-site': req.headers['sec-fetch-site'],
-        'sec-fetch-mode': req.headers['sec-fetch-mode'],
-        'x-requested-with': req.headers['x-requested-with']
+        'sec-fetch-site': req.headers['sec-fetch-site'] || 'MISSING',
+        'sec-fetch-mode': req.headers['sec-fetch-mode'] || 'MISSING',
+        'sec-fetch-dest': req.headers['sec-fetch-dest'] || 'MISSING',
+        'sec-fetch-user': req.headers['sec-fetch-user'] || 'MISSING',
+        'x-requested-with': req.headers['x-requested-with'] || 'MISSING'
       }
     });
     
     return res.status(403).json({ 
-      message: 'Forbidden: Web console requests are not allowed.',
-      hint: 'Please use your application frontend or a proper API client like Postman.',
-      blocked_reason: 'Web console detection triggered',
-      indicators: detectedIndicators
+      message: 'Forbidden: Web console/direct API requests are not allowed.',
+      hint: 'Use your application frontend or a proper API client like Postman.',
+      blocked_reason: 'Console request detection triggered',
+      triggered_rules: triggeredRules,
+      note: 'All browser console requests are blocked regardless of origin.',
+      origin_note: origin ? `Request from ${origin} was blocked` : 'No origin provided'
     });
   }
 
-  // Additional check for suspicious browser requests without proper context
-  if (userAgent.includes('Mozilla') && origin) {
-    const hasProperContext = (
-      referer.includes(origin) || // Proper referer from same origin
-      req.headers['sec-fetch-site'] || // Has security headers
-      contentType.includes('application/json') || // Proper content type
-      req.headers['x-requested-with'] === 'XMLHttpRequest' // Proper AJAX header
+  // Additional safety net: Block ANY browser request that looks suspicious
+  if (userAgent.includes('Mozilla') && !isApiTool) {
+    // Only allow browser requests that have PROPER navigation context
+    const hasProperBrowserContext = (
+      referer && 
+      referer !== origin && // Referer is not just the origin
+      referer.includes(origin) && // Referer includes origin (proper navigation)
+      (
+        req.headers['sec-fetch-site'] === 'same-origin' || 
+        req.headers['sec-fetch-mode'] === 'cors' ||
+        req.headers['x-requested-with'] === 'XMLHttpRequest'
+      )
     );
 
-    if (!hasProperContext && acceptHeader === '*/*') {
-      console.log(`🚫 Blocked suspicious browser request:`, {
+    if (!hasProperBrowserContext) {
+      console.log(`🚫 BLOCKED suspicious browser request:`, {
         method: req.method,
         path: req.path,
         origin,
-        reason: 'Lacks proper browser request context'
+        referer: referer || 'NO_REFERER',
+        reason: 'Lacks proper browser navigation context'
       });
       
       return res.status(403).json({ 
-        message: 'Forbidden: Request lacks proper browser context.',
-        hint: 'Make requests through your application frontend, not browser console.'
+        message: 'Forbidden: Browser requests must have proper navigation context.',
+        hint: 'Navigate to your application and use the UI, do not make direct API calls.',
+        note: 'Direct API calls from browser console are blocked.',
+        debug: {
+          has_referer: !!referer,
+          referer_matches_origin: referer === origin,
+          has_sec_fetch: !!req.headers['sec-fetch-site']
+        }
       });
     }
   }
+
+  console.log(`✅ Allowed request:`, {
+    method: req.method,
+    path: req.path,
+    origin,
+    userAgent: userAgent.substring(0, 50) + '...',
+    type: isApiTool ? 'API_TOOL' : 'LEGITIMATE_BROWSER'
+  });
 
   next();
 });
