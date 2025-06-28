@@ -49,7 +49,7 @@ app.use((req, res, next) => {
   const isLikelyFromWebConsole = userAgent.includes('Mozilla') && !referer;
 
   // If request has 'x-web-console' header, treat it as Web Console or Postman
-  const isExplicitWebConsole = req.headers['Content-Type'] === 'application/json';
+  const isExplicitWebConsole = req.headers['x-web-console'] === 'vikasvs6363';
 
   if ((isLikelyFromWebConsole || isExplicitWebConsole) && req.method !== 'GET') {
     return res.status(403).json({ message: 'Forbidden: POST requests from web console or tools are blocked.' });
@@ -62,10 +62,10 @@ app.use((req, res, next) => {
 // Middleware
 app.use(cors({
   origin: process.env.NODE_ENV === 'production'
-    ? 'https://admin.swansorter.com'
-    : 'https://swanfinal-1.onrender.com'||"https://swansorter.com",
+    ? 'https://admin.swansorter.com'||'https://swansorter.com'||'https://swanfinal.onrender.com'
+    : 'https://swansorter.com'||'localhost:3000',
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'],
-  allowedHeaders: ['Content-Type', 'Authorization'],
+  allowedHeaders: ['Content-Type', 'Authorization','x-web-console'],
   credentials: true
 }));
 
