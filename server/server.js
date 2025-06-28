@@ -60,8 +60,9 @@ app.use((req, res, next) => {
 
 const allowedOrigins = [
   'https://admin.swansorter.com',
-  'https://www.swansorter.com',
-  'https://swanfinal.onrender.com',
+  'https://www.swansorter.com/',
+  'https://swansorter.com/',
+  'https://swanfinal-1.onrender.com',
   'https://swansorter.com',
   'http://localhost:3000'
 ];
@@ -69,13 +70,20 @@ const allowedOrigins = [
 app.use(
   cors({
     origin: function (origin, callback) {
-      console.log('CORS Origin:', origin);
-      if (!origin) return callback(null, true);
-      const isAllowed = allowedOrigins.some(o => origin.startsWith(o));
+      console.log('=== CORS DEBUG ===');
+      console.log('Received Origin:', origin);
+      if (!origin) {
+        console.log('No origin; allowing request.');
+        return callback(null, true);
+      }
+      const cleanedOrigin = origin.replace(/\/$/, '');
+      const isAllowed = allowedOrigins.includes(cleanedOrigin);
+      console.log('Cleaned Origin:', cleanedOrigin);
+      console.log('Allowed:', isAllowed);
       if (isAllowed) {
         return callback(null, true);
       } else {
-        return callback(new Error('Not allowed by CORS'));
+        return callback(new Error(`Not allowed by CORS: ${origin}`));
       }
     },
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'],
