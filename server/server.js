@@ -62,7 +62,7 @@ app.use((req, res, next) => {
 // Middleware
 app.use(cors({
   origin: process.env.NODE_ENV === 'production'
-    ? 'https://admin.swansorter.com'||'https://swansorter.com'||'https://swanfinal.onrender.com'
+    ? 'https://admin.swansorter.com'||'https://www.swansorter.com'||'https://swanfinal.onrender.com'
     : 'https://swansorter.com'||'localhost:3000',
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'],
   allowedHeaders: ['Content-Type', 'Authorization','x-web-console'],
