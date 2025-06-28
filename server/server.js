@@ -58,7 +58,6 @@ app.use((req, res, next) => {
   next();
 });
 
-
 const allowedOrigins = [
   'https://admin.swansorter.com',
   'https://www.swansorter.com',
@@ -70,9 +69,10 @@ const allowedOrigins = [
 app.use(
   cors({
     origin: function (origin, callback) {
-      // Allow requests with no origin (e.g., mobile apps, curl)
+      console.log('CORS Origin:', origin);
       if (!origin) return callback(null, true);
-      if (allowedOrigins.includes(origin)) {
+      const isAllowed = allowedOrigins.some(o => origin.startsWith(o));
+      if (isAllowed) {
         return callback(null, true);
       } else {
         return callback(new Error('Not allowed by CORS'));
@@ -83,6 +83,7 @@ app.use(
     credentials: true
   })
 );
+
 
 
 app.use((req, res, next) => {
