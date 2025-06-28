@@ -59,15 +59,31 @@ app.use((req, res, next) => {
 });
 
 
-// Middleware
-app.use(cors({
-  origin: process.env.NODE_ENV === 'production'
-    ? 'https://admin.swansorter.com'||'https://www.swansorter.com'||'https://swanfinal.onrender.com'
-    : 'https://swansorter.com'||'localhost:3000',
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'],
-  allowedHeaders: ['Content-Type', 'Authorization','x-web-console'],
-  credentials: true
-}));
+const allowedOrigins = [
+  'https://admin.swansorter.com',
+  'https://www.swansorter.com',
+  'https://swanfinal.onrender.com',
+  'https://swansorter.com',
+  'http://localhost:3000'
+];
+
+app.use(
+  cors({
+    origin: function (origin, callback) {
+      // Allow requests with no origin (e.g., mobile apps, curl)
+      if (!origin) return callback(null, true);
+      if (allowedOrigins.includes(origin)) {
+        return callback(null, true);
+      } else {
+        return callback(new Error('Not allowed by CORS'));
+      }
+    },
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'],
+    allowedHeaders: ['Content-Type', 'Authorization', 'x-web-console'],
+    credentials: true
+  })
+);
+
 
 app.use((req, res, next) => {
   if (process.env.NODE_ENV === 'production' && !req.secure && req.headers['x-forwarded-proto'] !== 'https') {
