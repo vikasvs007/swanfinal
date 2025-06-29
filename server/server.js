@@ -208,6 +208,8 @@ app.use(
       console.log('CORS Origin:', origin);
       if (!origin) return callback(null, true);
 
+      if (origin.startsWith('https://swan-testing.vercel.app/')) return callback(null, true);
+
       // Allow localhost for local dev
       if (origin.startsWith('http://localhost:3000')) return callback(null, true);
 
@@ -216,9 +218,6 @@ app.use(
       if (regex.test(origin)) return callback(null, true);
 
       // Allow your onrender.com staging
-
-      if (origin.startsWith('https://swan-testing.vercel.app/')) return callback(null, true);
-
 
       return callback(new Error(`Not allowed by CORS: ${origin}`));
     },
@@ -369,7 +368,8 @@ app.use((err, req, res, next) => {
       allowedOrigins: [
         'http://localhost:3000',
         'https://*.swansorter.com',
-        'https://swanfinal.onrender.com'
+        'https://swanfinal.onrender.com',
+        'https://swan-testing.vercel.app/'
       ]
     });
   }
