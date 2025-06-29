@@ -216,7 +216,10 @@ app.use(
       if (regex.test(origin)) return callback(null, true);
 
       // Allow your onrender.com staging
-      if (origin === 'https://swanfinal.onrender.com') return callback(null, true);
+      if (origin === 'https://swanfinal-1.onrender.com') return callback(null, true);
+
+      if (origin === 'https://swan-testing.vercel.app') return callback(null, true);
+
 
       return callback(new Error(`Not allowed by CORS: ${origin}`));
     },
