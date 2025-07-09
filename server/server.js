@@ -208,7 +208,6 @@ app.use(
       console.log('CORS Origin:', origin);
       if (!origin) return callback(null, true);
 
-      if (origin.startsWith('https://swan-testing.vercel.app/')) return callback(null, true);
 
       // Allow localhost for local dev
       if (origin.startsWith('http://localhost:3000')) return callback(null, true);
