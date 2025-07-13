@@ -56,14 +56,20 @@ app.use((req, res, next) => {
     return next();
   }
 
-  // API tools detection (allow these first)
+  // API tools detection (BLOCK these completely)
   const toolUserAgents = /postman|insomnia|httpie|curl|wget|thunder|rest|api|postman-runtime|newman|axios|node-fetch/i;
   const isApiTool = toolUserAgents.test(userAgent);
 
-  // Allow known API tools
+  // BLOCK all API tools including Postman
   if (isApiTool) {
-    console.log(`✅ Allowed API tool: ${userAgent.substring(0, 50)}`);
-    return next();
+    console.log(`🚫 BLOCKED API tool: ${userAgent.substring(0, 50)}`);
+    return res.status(403).json({ 
+      message: 'Forbidden: API tools like Postman are not allowed.',
+      hint: 'Use your application frontend only. Direct API calls are blocked.',
+      blocked_reason: 'API tool detection',
+      user_agent: userAgent.substring(0, 100),
+      note: 'All external API clients are blocked for security reasons.'
+    });
   }
 
   // STRICT console detection - blocks ALL console requests even from allowed origins
@@ -76,8 +82,7 @@ app.use((req, res, next) => {
     browserWithoutReferer: (
       userAgent.includes('Mozilla') &&
       origin && // Has origin (so it's from a browser)
-      !referer && // NO referer (major red flag)
-      !isApiTool // Not an API tool
+      !referer // NO referer (major red flag)
     ),
     
     // Rule 3: Missing ALL modern browser security headers
@@ -86,8 +91,7 @@ app.use((req, res, next) => {
       !req.headers['sec-fetch-site'] && 
       !req.headers['sec-fetch-mode'] && 
       !req.headers['sec-fetch-dest'] &&
-      origin && // Has origin but missing security context
-      !isApiTool
+      origin // Has origin but missing security context
     ),
     
     // Rule 4: Generic accept header with proper content-type (console fetch pattern)
@@ -95,8 +99,7 @@ app.use((req, res, next) => {
       userAgent.includes('Mozilla') &&
       acceptHeader.includes('*/*') &&
       contentType &&
-      !req.headers['sec-fetch-site'] &&
-      !isApiTool
+      !req.headers['sec-fetch-site']
     ),
     
     // Rule 5: Browser with origin but referer equals origin exactly (console pattern)
@@ -104,8 +107,7 @@ app.use((req, res, next) => {
       userAgent.includes('Mozilla') &&
       origin &&
       referer === origin && // Exact match (not a page URL)
-      !req.headers['sec-fetch-site'] &&
-      !isApiTool
+      !req.headers['sec-fetch-site']
     ),
     
     // Rule 6: Missing user interaction headers that real browsers send
@@ -114,8 +116,7 @@ app.use((req, res, next) => {
       origin &&
       !req.headers['sec-fetch-user'] && // No user interaction
       !req.headers['sec-fetch-site'] &&
-      acceptHeader.includes('*/*') &&
-      !isApiTool
+      acceptHeader.includes('*/*')
     )
   };
 
@@ -125,7 +126,7 @@ app.use((req, res, next) => {
     .map(([key]) => key);
 
   // STRICT BLOCKING: Block if ANY rule is triggered for browser requests
-  if (triggeredRules.length > 0 && userAgent.includes('Mozilla') && !isApiTool) {
+  if (triggeredRules.length > 0 && userAgent.includes('Mozilla')) {
     console.log(`🚫 BLOCKED console request from origin: ${origin}`, {
       method: req.method,
       path: req.path,
@@ -155,7 +156,7 @@ app.use((req, res, next) => {
   }
 
   // Additional safety net: Block ANY browser request that looks suspicious
-  if (userAgent.includes('Mozilla') && !isApiTool) {
+  if (userAgent.includes('Mozilla')) {
     // Only allow browser requests that have PROPER navigation context
     const hasProperBrowserContext = (
       referer && 
@@ -195,7 +196,7 @@ app.use((req, res, next) => {
     path: req.path,
     origin,
     userAgent: userAgent.substring(0, 50) + '...',
-    type: isApiTool ? 'API_TOOL' : 'LEGITIMATE_BROWSER'
+    type: 'LEGITIMATE_BROWSER'
   });
 
   next();
